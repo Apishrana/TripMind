@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Planner AI Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            height: 600px;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .example {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .example:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        
+        .example-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .example-text {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            text-align: right;
+        }
+        
+        .message-content {
+            display: inline-block;
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            text-align: left;
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .message.assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .message-label {
+            font-size: 0.8em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #userInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #userInput:focus {
+            border-color: #667eea;
+        }
+        
+        #sendBtn, #clearBtn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        #sendBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        #sendBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #clearBtn {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        #clearBtn:hover {
+            background: #e0e0e0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .info-badge {
+            display: inline-block;
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin: 5px 5px 5px 0;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Travel Planner AI Agent</h1>
+            <p>Your autonomous travel planning assistant with reasoning & memory</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <h3>💡 Quick Examples</h3>
+                
+                <div class="example" onclick="setExample('Plan a 5-day beach trip in Goa under $500 in December')">
+                    <div class="example-title">🏖️ Beach Vacation</div>
+                    <div class="example-text">5-day Goa trip under $500</div>
+                </div>
+                
+                <div class="example" onclick="setExample('I want to visit Paris for 7 days with my family, budget is $3000, we love museums and food')">
+                    <div class="example-title">🗼 Family Trip</div>
+                    <div class="example-text">7-day Paris with culture & food</div>
+                </div>
+                
+                <div class="example" onclick="setExample('Plan a weekend adventure trip to Manali for trekking and camping, budget $200')">
+                    <div class="example-title">⛰️ Adventure</div>
+                    <div class="example-text">Weekend trekking in Manali</div>
+                </div>
+                
+                <div class="example" onclick="setExample('I prefer luxury hotels, vegetarian food, and cultural activities. Save this for future trips.')">
+                    <div class="example-title">💾 Save Preferences</div>
+                    <div class="example-text">Store travel preferences</div>
+                </div>
+                
+                <div class="example" onclick="setExample('What are my saved travel preferences?')">
+                    <div class="example-title">📋 View Preferences</div>
+                    <div class="example-text">Check saved preferences</div>
+                </div>
+                
+                <div class="example" onclick="setExample('Suggest a budget-friendly tropical destination for next month')">
+                    <div class="example-title">🌴 AI Suggestion</div>
+                    <div class="example-text">Let AI suggest destinations</div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px;">
+                    <strong>✨ Features:</strong>
+                    <div style="margin-top: 10px; font-size: 0.9em;">
+                        • Natural language understanding<br>
+                        • Autonomous planning<br>
+                        • Budget optimization<br>
+                        • Memory & preferences<br>
+                        • Multi-step reasoning<br>
+                        • Activity recommendations
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-area">
+                <div class="messages" id="messages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <div class="message-label">AI Agent</div>
+                            👋 Hello! I'm your autonomous travel planning assistant. I can help you:
+                            <br><br>
+                            <span class="info-badge">Plan complete trips</span>
+                            <span class="info-badge">Find flights & hotels</span>
+                            <span class="info-badge">Create itineraries</span>
+                            <span class="info-badge">Manage budgets</span>
+                            <span class="info-badge">Remember preferences</span>
+                            <br><br>
+                            Just tell me where you'd like to go, your budget, and any preferences - I'll handle the rest autonomously! 🚀
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <div class="input-container">
+                        <input 
+                            type="text" 
+                            id="userInput" 
+                            placeholder="E.g., Plan a 5-day beach trip to Goa under $500 in December..."
+                            onkeypress="if(event.key==='Enter') sendMessage()"
+                        />
+                        <button id="sendBtn" onclick="sendMessage()">Send</button>
+                        <button id="clearBtn" onclick="clearChat()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function setExample(text) {
+            document.getElementById('userInput').value = text;
+            document.getElementById('userInput').focus();
+        }
+        
+        function addMessage(role, content) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const label = role === 'user' ? 'You' : 'AI Agent';
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="message-label">${label}</div>
+                    ${formatMessage(content)}
+                </div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function formatMessage(content) {
+            // Basic formatting for better readability
+            content = content.replace(/\n/g, '<br>');
+            
+            // Highlight JSON blocks
+            content = content.replace(/```json\n([\s\S]*?)\n```/g, '<pre><code>$1</code></pre>');
+            content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            
+            // Make links clickable
+            content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+            
+            return content;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            
+            // Disable input while processing
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="loading"></span>';
+            
+            try {
+                const response = await fetch('/api/plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    addMessage('assistant', data.response);
+                } else {
+                    addMessage('assistant', '❌ Error: ' + (data.error || 'Something went wrong'));
+                }
+            } catch (error) {
+                addMessage('assistant', '❌ Error connecting to server: ' + error.message);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'Send';
+            }
+        }
+        
+        async function clearChat() {
+            if (confirm('Clear conversation history?')) {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                
+                // Reset memory on server
+                try {
+                    await fetch('/api/reset', { method: 'POST' });
+                } catch (error) {
+                    console.error('Error resetting memory:', error);
+                }
+                
+                // Add welcome message
+                addMessage('assistant', 
+                    '👋 Chat cleared! I\'m ready to help you plan your next adventure. ' +
+                    'Tell me where you\'d like to go! 🌍'
+                );
+            }
+        }
+    </script>
+</body>
+</html>
