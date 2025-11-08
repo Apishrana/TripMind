@@ -385,80 +385,197 @@
         </section>
     </div>
 
-    <!-- Plan Trip Page -->
-    <div id="plan-page" class="page">
-        <div class="chat-container">
-            <div class="chat-box">
-                <div class="chat-header">
-                    <div>
-                        <span>
-                            <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" fill="url(#ai-gradient)"/>
+    <!-- Plan Trip Page - Full Page Redesign -->
+    <div id="plan-page" class="page plan-trip-fullpage">
+        <!-- Animated Background -->
+        <div class="plan-bg-animation">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+            <div class="floating-element element-4"></div>
+        </div>
+        
+        <!-- Split Layout Container -->
+        <div class="plan-split-container">
+            <!-- Left Side - Chat Interface -->
+            <div class="plan-chat-side">
+                <div class="plan-chat-header">
+                    <div class="plan-header-content">
+                        <div class="plan-header-title">
+                            <svg class="plan-ai-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="32" cy="32" r="30" fill="url(#headerGradient)" opacity="0.2"/>
+                                <path d="M32 12C20.954 12 12 20.954 12 32s8.954 20 20 20 20-8.954 20-20S43.046 12 32 12zm0 36c-8.837 0-16-7.163-16-16s7.163-16 16-16 16 7.163 16 16-7.163 16-16 16z" fill="url(#headerGradient)"/>
+                                <circle cx="24" cy="28" r="3" fill="url(#headerGradient)"/>
+                                <circle cx="40" cy="28" r="3" fill="url(#headerGradient)"/>
+                                <path d="M32 36c-3.314 0-6-2.686-6-6h2c0 2.206 1.794 4 4 4s4-1.794 4-4h2c0 3.314-2.686 6-6 6z" fill="url(#headerGradient)"/>
                                 <defs>
-                                    <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
                                         <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
                                     </linearGradient>
                                 </defs>
                             </svg>
-                            AI Travel Assistant
-                        </span>
-                        <div style="font-size: 0.9rem; font-weight: 400; opacity: 0.9; margin-top: 0.3rem;">
-                            Autonomous planning powered by advanced AI
+                            <div>
+                                <h1>AI Travel Assistant</h1>
+                                <p>Powered by advanced autonomous AI</p>
+                            </div>
+                        </div>
+                        <button class="plan-clear-btn" onclick="clearChat()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
+                            </svg>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="plan-chat-messages" id="chat-messages">
+                    <!-- Welcome State -->
+                    <div class="plan-welcome-state" id="welcome-state">
+                        <div class="welcome-icon-pulse">
+                            <svg width="80" height="80" viewBox="0 0 64 64" fill="none">
+                                <circle cx="32" cy="32" r="28" fill="url(#welcomeGrad)" opacity="0.1"/>
+                                <path d="M32 8L36 20L48 16L40 28L52 32L40 36L48 48L36 44L32 56L28 44L16 48L24 36L12 32L24 28L16 16L28 20L32 8Z" fill="url(#welcomeGrad)"/>
+                                <defs>
+                                    <linearGradient id="welcomeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#667eea"/>
+                                        <stop offset="100%" style="stop-color:#764ba2"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <h2>Start Your Journey</h2>
+                        <p>Tell me where you want to go, and I'll craft the perfect itinerary for you</p>
+                        <div class="welcome-suggestions">
+                            <button class="suggestion-chip" onclick="document.getElementById('chat-input').value = 'Plan a 5-day beach vacation in Bali under $1200 in March'; document.getElementById('welcome-state').style.display='none';">🏝️ Beach Paradise</button>
+                            <button class="suggestion-chip" onclick="document.getElementById('chat-input').value = 'Weekend mountain adventure in Swiss Alps for hiking and nature'; document.getElementById('welcome-state').style.display='none';">⛰️ Mountain Escape</button>
+                            <button class="suggestion-chip" onclick="document.getElementById('chat-input').value = 'Cultural city tour of Tokyo with food, temples, and shopping, 7 days'; document.getElementById('welcome-state').style.display='none';">🏙️ City Explorer</button>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" style="padding: 0.6rem 1.8rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;" onclick="clearChat()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/>
-                        </svg>
-                        Clear Chat
-                    </button>
                 </div>
                 
-                <div class="chat-messages" id="chat-messages">
-                    <!-- Messages will be added here -->
-                </div>
-                
-                <div class="chat-input-area">
-                    <div class="chat-input-container">
+                <div class="plan-chat-input-area">
+                    <div class="plan-quick-actions">
+                        <span class="quick-chip" onclick="document.getElementById('chat-input').value = 'Plan a romantic getaway for 2 in Santorini, 5 days, budget $2000'">💑 Romantic</span>
+                        <span class="quick-chip" onclick="document.getElementById('chat-input').value = 'Budget backpacking across Thailand for 2 weeks under $800'">🎒 Backpacking</span>
+                        <span class="quick-chip" onclick="document.getElementById('chat-input').value = 'Luxury wellness retreat in Bali, 7 days, spa and yoga'">🧘 Wellness</span>
+                        <span class="quick-chip" onclick="document.getElementById('chat-input').value = 'What are my saved preferences?'">⚙️ Preferences</span>
+                    </div>
+                    <div class="plan-input-container">
                         <input 
                             type="text" 
                             id="chat-input" 
-                            class="chat-input"
-                            placeholder="E.g., Plan a 5-day beach trip to Bali under $1000 in March..."
+                            class="plan-chat-input"
+                            placeholder="Describe your dream trip... (e.g., 5-day beach getaway in Maldives under $2000)"
+                            onkeypress="if(event.key === 'Enter') sendMessage()"
                         />
-                        <button id="send-btn" class="btn btn-primary" onclick="sendMessage()">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <button id="send-btn" class="plan-send-btn" onclick="sendMessage()">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
                             </svg>
-                            Send
                         </button>
                     </div>
-                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Plan a romantic getaway for 2 in Santorini, 5 days, budget $2000'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
-                            </svg>
-                            Romantic Getaway
-                        </span>
-                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Budget backpacking trip across Thailand for 2 weeks under $800'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" fill="currentColor"/>
-                            </svg>
-                            Backpacking Adventure
-                        </span>
-                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Luxury wellness retreat in Bali, 7 days, spa and yoga focused'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 16c0 3.87 3.13 7 7 7s7-3.13 7-7v-4H5v4zM16.12 4.37l2.1-2.1-.82-.83-2.3 2.31C14.16 3.28 13.12 3 12 3s-2.16.28-3.09.75L6.6 1.44l-.82.83 2.1 2.1C6.14 5.64 5 7.68 5 10v1h14v-1c0-2.32-1.14-4.36-2.88-5.63zM9 9c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" fill="currentColor"/>
-                            </svg>
-                            Wellness Retreat
-                        </span>
-                        <span class="badge badge-success" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'What are my saved preferences?'">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" fill="currentColor"/>
-                            </svg>
-                            View My Preferences
-                        </span>
+                </div>
+            </div>
+            
+            <!-- Right Side - Dynamic Graphics -->
+            <div class="plan-graphics-side">
+                <div class="plan-graphics-content">
+                    <!-- Animated Travel Illustration -->
+                    <div class="travel-illustration">
+                        <svg class="travel-svg" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Sky -->
+                            <rect width="500" height="500" fill="url(#skyGradient)"/>
+                            
+                            <!-- Sun -->
+                            <circle cx="400" cy="100" r="50" fill="#FDB813" opacity="0.8">
+                                <animate attributeName="r" values="50;55;50" dur="3s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <!-- Clouds -->
+                            <g class="cloud cloud-1">
+                                <ellipse cx="100" cy="80" rx="40" ry="20" fill="white" opacity="0.7"/>
+                                <ellipse cx="120" cy="75" rx="50" ry="25" fill="white" opacity="0.7"/>
+                                <ellipse cx="140" cy="80" rx="40" ry="20" fill="white" opacity="0.7"/>
+                            </g>
+                            <g class="cloud cloud-2">
+                                <ellipse cx="300" cy="120" rx="35" ry="18" fill="white" opacity="0.6"/>
+                                <ellipse cx="320" cy="115" rx="45" ry="22" fill="white" opacity="0.6"/>
+                                <ellipse cx="335" cy="120" rx="35" ry="18" fill="white" opacity="0.6"/>
+                            </g>
+                            
+                            <!-- Mountains -->
+                            <path d="M0 400 L100 250 L200 350 L300 200 L400 300 L500 250 L500 500 L0 500 Z" fill="url(#mountainGrad)"/>
+                            
+                            <!-- Airplane -->
+                            <g class="airplane">
+                                <path d="M250 150 L260 148 L280 155 L285 150 L283 145 L270 140 L250 145 Z" fill="#667eea"/>
+                                <ellipse cx="265" cy="150" rx="8" ry="4" fill="white" opacity="0.5"/>
+                                <path d="M250 150 L240 145 L250 145 Z" fill="#764ba2"/>
+                                <path d="M280 155 L285 165 L283 165 L278 157 Z" fill="#764ba2"/>
+                                <path d="M250 145 L245 135 L247 135 L252 143 Z" fill="#764ba2"/>
+                            </g>
+                            
+                            <!-- Palm Tree -->
+                            <g class="palm-tree">
+                                <rect x="370" y="350" width="8" height="80" fill="#8B4513"/>
+                                <path d="M374 350 Q360 330 350 340 Q365 345 374 350" fill="#228B22"/>
+                                <path d="M374 350 Q388 330 398 340 Q383 345 374 350" fill="#228B22"/>
+                                <path d="M374 350 Q370 320 360 325 Q370 335 374 350" fill="#2E8B57"/>
+                                <path d="M374 350 Q378 320 388 325 Q378 335 374 350" fill="#2E8B57"/>
+                            </g>
+                            
+                            <!-- Beach -->
+                            <path d="M0 420 Q100 410 200 420 T400 420 T500 430 L500 500 L0 500 Z" fill="#F4E4C1"/>
+                            
+                            <!-- Waves -->
+                            <path class="wave wave-1" d="M0 400 Q50 395 100 400 T200 400 T300 400 T400 400 T500 400" stroke="#4A9EFF" stroke-width="2" fill="none" opacity="0.6"/>
+                            <path class="wave wave-2" d="M0 410 Q50 405 100 410 T200 410 T300 410 T400 410 T500 410" stroke="#4A9EFF" stroke-width="2" fill="none" opacity="0.4"/>
+                            
+                            <!-- Gradients -->
+                            <defs>
+                                <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#87CEEB"/>
+                                    <stop offset="100%" style="stop-color:#B0E0E6"/>
+                                </linearGradient>
+                                <linearGradient id="mountainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#8B7355"/>
+                                    <stop offset="100%" style="stop-color:#A0826D"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="plan-stats-grid">
+                        <div class="stat-card stat-1">
+                            <div class="stat-icon">🌍</div>
+                            <div class="stat-content">
+                                <div class="stat-number">150+</div>
+                                <div class="stat-label">Countries</div>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-2">
+                            <div class="stat-icon">✈️</div>
+                            <div class="stat-content">
+                                <div class="stat-number">50k+</div>
+                                <div class="stat-label">Trips Planned</div>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-3">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-content">
+                                <div class="stat-number">4.9</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Testimonial Quote -->
+                    <div class="plan-testimonial">
+                        <div class="quote-icon">"</div>
+                        <p class="quote-text">The AI understood exactly what I wanted. Best trip planning experience ever!</p>
+                        <div class="quote-author">— Sarah M., traveled to 12 countries</div>
                     </div>
                 </div>
             </div>
