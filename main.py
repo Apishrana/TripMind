@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from database import init_db, get_db, Itinerary, Booking, CalendarEvent, User, Session as DBSession
 
 # Initialize FastAPI app
-app = FastAPI(title="Travel Planner AI Agent")
+app = FastAPI(title="TripMind AI Agent")
 
 # Initialize database
 init_db()
@@ -1043,7 +1043,7 @@ async def create_booking_from_itinerary(itinerary_id: int, passengers: int = 1, 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "Travel Planner AI Agent"}
+    return {"status": "healthy", "service": "TripMind AI Agent"}
 
 # Calendar Events API Endpoints
 @app.get("/api/calendar/events")

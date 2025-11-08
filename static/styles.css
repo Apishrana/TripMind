@@ -2400,3 +2400,36 @@ html {
 .price-row:last-child {
     border-bottom: none;
 }
+
+/* My Trips Page - Scrollable Header */
+#trips-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#trips-page .container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+#trips-page .section-title {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg-secondary);
+    padding: 1.5rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+#trips-page .trips-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 2rem;
+}

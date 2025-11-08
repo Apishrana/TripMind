@@ -1,4 +1,4 @@
-# Travel Planner AI Agent
+# TripMind AI Agent
 
 ## Overview
 
