@@ -3,14 +3,14 @@ import json
 import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from langchain_groq import ChatGroq
+from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 
-# Using Groq API with llama-3.3-70b-versatile model for fast travel planning
+# Using OpenRouter API for flexible access to multiple AI models
 
 # Global user preferences storage (in production would use a database)
 user_preferences_store = {}
@@ -507,10 +507,12 @@ class TravelPlannerAgent:
     """Autonomous AI agent for travel planning with LangChain agent executor."""
     
     def __init__(self):
-        # Use GROQ_API_KEY environment variable
-        self.llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
-            temperature=0.7
+        # Use OPENROUTER_API_KEY environment variable
+        self.llm = ChatOpenAI(
+            model="meta-llama/llama-3.3-70b-instruct",
+            temperature=0.7,
+            api_key=os.environ.get("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1"
         )
         
         # Chat history for conversation memory
