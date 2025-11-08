@@ -9,10 +9,16 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
-- **Profile Menu Fix**: Fixed profile button to properly load user data after sign-in
-  - Added loadUserProfile() call after successful sign-in
-  - Profile now displays correct user name, email, and initials
-  - All menu items functional: Settings (Preferences), My Trips, Calendar, Logout
+- **Enhanced Profile Dropdown Menu**: Redesigned with comprehensive account management options
+  - Account Settings - View account information
+  - My Trips - Access saved trip plans
+  - My Bookings - View confirmed bookings
+  - Calendar - Access travel calendar
+  - Preferences - Manage travel preferences
+  - Switch Account - Sign out and switch to different account
+  - Sign Out - Logout with confirmation message
+  - Profile displays user name, email, and auto-generated initials
+  - All menu items fully functional with smooth animations
 - **Cursor Hiding on Button Hover**: Implemented cursor: none on all interactive element hover states
   - All buttons hide cursor on hover (primary, secondary, inline, booking, view, delete, submit, social)
   - Navigation elements hide cursor (logo, links, booking button, theme toggle)

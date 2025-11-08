@@ -2267,7 +2267,39 @@ function logout() {
     localStorage.removeItem('user');
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('auth_token');
-    navigateTo('welcome');
+    showInfoToast('You have been signed out successfully');
+    setTimeout(() => {
+        navigateTo('welcome');
+    }, 500);
+}
+
+function switchAccount() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_token');
+    showInfoToast('Switching account...');
+    setTimeout(() => {
+        navigateTo('signin');
+    }, 500);
+}
+
+function showAccountSettings() {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+        showErrorToast('Please sign in to view account settings');
+        return;
+    }
+    
+    const user = JSON.parse(userStr);
+    
+    showInfoToast('Account Settings:\n• Name: ' + user.name + '\n• Email: ' + user.email);
+}
+
+function showMyBookings() {
+    navigateTo('calendar');
+    setTimeout(() => {
+        showInfoToast('Viewing your bookings in Calendar');
+    }, 500);
 }
 
 // ========== PROFILE MENU ==========
