@@ -46,6 +46,14 @@ Preferred communication style: Simple, everyday language.
 - **Better Alignment**: Fixed form alignment and responsive design for all screen sizes
 - **Security Improvements**: Required email field, server-side price validation
 
+### Smart Chat-to-Booking Flow (Latest Fix)
+- **Auto Trip Detection**: AI responses are automatically scanned for trip details (destination, dates, passengers, budget)
+- **Smart Origin Handling**: No hard-coded defaults - system asks user for departure city if not mentioned
+- **Follow-up Flow**: When origin is missing, system prompts user and merges their response with partial trip details
+- **Dual Booking Options**: "Book This Trip" (full selection flow) and "Quick Book" (instant booking)
+- **Seamless Integration**: Trip details auto-populate booking page with flight/hotel options matching the planned itinerary
+- **Error Prevention**: Silent exit when no trip is detected (prevents booking prompts on weather/general queries)
+
 ## System Architecture
 
 ### Application Architecture
