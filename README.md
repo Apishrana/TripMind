@@ -110,3 +110,162 @@ Preferred communication style: Simple, everyday language.
 - **No CDN dependencies**: All CSS/JS is inline or self-hosted
 - **No frontend framework**: Pure HTML5/CSS3/JavaScript
 - **No external fonts or libraries**: Self-contained design
+
+## Installation & Setup
+
+### Prerequisites
+- Python 3.11 or higher
+- pip (Python package manager)
+- (Optional) Docker and Docker Compose for containerized deployment
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd AI
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Using pip
+   pip install -r requirements.txt
+   
+   # Or use the build script
+   chmod +x build.sh
+   ./build.sh
+   
+   # Or use Make
+   make install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your API keys:
+   # - GROQ_API_KEY (required for AI features)
+   # - STRIPE_SECRET_KEY (required for payments)
+   # - DATABASE_URL (optional, defaults to SQLite)
+   ```
+
+4. **Run the application**
+   ```bash
+   python3 main.py
+   
+   # Or use Make
+   make run
+   ```
+
+5. **Access the application**
+   - Open your browser to `http://localhost:5000`
+   - API documentation available at `http://localhost:5000/docs`
+
+### Docker Deployment
+
+1. **Build and run with Docker Compose**
+   ```bash
+   docker-compose up --build
+   ```
+   
+   This will start:
+   - Web application on port 5000
+   - PostgreSQL database on port 5432
+
+2. **Or build Docker image manually**
+   ```bash
+   docker build -t travel-planner-ai .
+   docker run -p 5000:5000 --env-file .env travel-planner-ai
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+# Database (optional - defaults to SQLite)
+DATABASE_URL=postgresql://user:password@localhost:5432/traveldb
+
+# AI Agent (required for AI features)
+GROQ_API_KEY=your_groq_api_key_here
+
+# Stripe (required for payments)
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+```
+
+## Build Commands
+
+### Using Make
+```bash
+make install      # Install dependencies
+make run          # Run the application
+make build        # Build the application
+make docker-build # Build Docker image
+make docker-up    # Start Docker containers
+make docker-down  # Stop Docker containers
+make clean        # Clean build artifacts
+```
+
+### Using Build Script
+```bash
+./build.sh        # Automated build and setup
+```
+
+## Features
+
+### ✅ Implemented
+- 🤖 AI-powered travel planning with natural language queries
+- ✈️ Flight and hotel search simulation
+- 🌤️ Weather forecasting
+- 🎯 Activity recommendations
+- 💰 Budget calculation
+- 📅 Itinerary creation and calendar management
+- 💳 Complete booking system with Stripe integration
+- 🗄️ Database persistence for bookings and itineraries
+- 📋 User preference management
+- 🔒 Secure payment processing
+
+### 🚀 Production Ready
+- Database-backed storage (SQLite/PostgreSQL)
+- Docker containerization
+- Health check endpoints
+- Error handling and validation
+- Server-side price validation
+- Secure payment processing
+
+## API Endpoints
+
+- `GET /` - Main web interface
+- `POST /api/plan` - AI travel planning
+- `GET /api/bookings` - List all bookings
+- `POST /api/bookings` - Create new booking
+- `GET /api/bookings/{id}` - Get booking details
+- `POST /api/create-checkout-session` - Create Stripe payment session
+- `GET /api/itineraries` - List all itineraries
+- `POST /api/itineraries` - Save itinerary
+- `GET /health` - Health check
+
+Full API documentation available at `/docs` when server is running.
+
+## Development
+
+### Project Structure
+```
+.
+├── main.py              # FastAPI application
+├── database.py          # Database models and setup
+├── agent/
+│   └── travel_agent.py  # AI agent implementation
+├── static/
+│   ├── index.html       # Frontend HTML
+│   ├── app.js           # Frontend JavaScript
+│   └── styles.css       # Frontend styles
+├── requirements.txt     # Python dependencies
+├── Dockerfile           # Docker configuration
+├── docker-compose.yml   # Docker Compose setup
+└── .env.example         # Environment variables template
+```
+
+## License
+
+This project is part of a hackathon submission.

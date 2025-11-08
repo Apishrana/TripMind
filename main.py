@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 import json
 from sqlalchemy.orm import Session
-from database import init_db, get_db, Itinerary
+from database import init_db, get_db, Itinerary, Booking
 
 # Initialize FastAPI app
 app = FastAPI(title="Travel Planner AI Agent")
@@ -22,10 +22,17 @@ init_db()
 # Initialize Stripe (API key will be set from environment)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 
-# Initialize the AI agent
-agent = TravelPlannerAgent()
+# Initialize the AI agent (only if API key is available)
+agent = None
+try:
+    if os.environ.get('GROQ_API_KEY'):
+        agent = TravelPlannerAgent()
+    else:
+        print("Warning: GROQ_API_KEY not set. AI agent features will be unavailable.")
+except Exception as e:
+    print(f"Warning: Failed to initialize AI agent: {e}. AI agent features will be unavailable.")
 
-# In-memory storage for bookings (in production, use a database)
+# In-memory storage for bookings (fallback, but we'll use database)
 bookings_store = {}
 
 # Server-side trip pricing (canonical source of truth)
@@ -53,8 +60,10 @@ class BookingRequest(BaseModel):
     end_date: str
     total_price: float
     passengers: int
+    email: Optional[str] = None
     flight_details: Optional[Dict[str, Any]] = None
     hotel_details: Optional[Dict[str, Any]] = None
+    special_requests: Optional[str] = None
 
 class PaymentRequest(BaseModel):
     booking_id: str
@@ -84,6 +93,13 @@ async def plan_trip(query: TravelQuery):
     Main endpoint for travel planning.
     Accepts natural language queries and returns AI-generated travel plans.
     """
+    if agent is None:
+        return TravelResponse(
+            status="error",
+            response="⚠️ AI Agent is currently unavailable. Please configure the GROQ_API_KEY environment variable to enable AI-powered trip planning. You can still use the booking features!",
+            request=query.query,
+            error="AI agent is not available. Please set GROQ_API_KEY environment variable."
+        )
     try:
         result = agent.plan_trip(query.query)
         
@@ -94,11 +110,18 @@ async def plan_trip(query: TravelQuery):
             error=result.get("error", "")
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return TravelResponse(
+            status="error",
+            response=f"❌ An error occurred: {str(e)}",
+            request=query.query,
+            error=str(e)
+        )
 
 @app.post("/api/reset")
 async def reset_memory():
     """Reset the agent's conversation memory."""
+    if agent is None:
+        return {"status": "error", "message": "AI agent is not available"}
     try:
         agent.reset_memory()
         return {"status": "success", "message": "Memory cleared"}
@@ -108,6 +131,8 @@ async def reset_memory():
 @app.get("/api/history")
 async def get_history():
     """Get conversation history."""
+    if agent is None:
+        return {"status": "success", "history": []}
     try:
         history = agent.get_conversation_history()
         return {"status": "success", "history": history}
@@ -127,7 +152,7 @@ async def get_preferences():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/bookings")
-async def create_booking(booking: BookingRequest):
+async def create_booking(booking: BookingRequest, db: Session = Depends(get_db)):
     """Create a new booking with server-side price calculation."""
     try:
         # SECURITY: Calculate price server-side using canonical trip prices
@@ -152,23 +177,59 @@ async def create_booking(booking: BookingRequest):
         
         booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
         
+        # Extract email from flight_details if not provided directly
+        email = booking.email
+        if not email and booking.flight_details and isinstance(booking.flight_details, dict):
+            email = booking.flight_details.get('email')
+        
+        # Extract special_requests from flight_details if not provided directly
+        special_requests = booking.special_requests
+        if not special_requests and booking.flight_details and isinstance(booking.flight_details, dict):
+            special_requests = booking.flight_details.get('special_requests')
+        
+        # Create booking in database
+        db_booking = Booking(
+            booking_id=booking_id,
+            trip_id=booking.trip_id,
+            trip_name=booking.trip_name,
+            destination=booking.destination,
+            start_date=booking.start_date,
+            end_date=booking.end_date,
+            base_price=base_price,
+            total_price=calculated_total,
+            passengers=booking.passengers,
+            email=email,
+            flight_details=booking.flight_details or {},
+            hotel_details=booking.hotel_details or {},
+            special_requests=special_requests,
+            status="pending",
+            payment_status="unpaid"
+        )
+        
+        db.add(db_booking)
+        db.commit()
+        db.refresh(db_booking)
+        
+        # Also store in memory for backward compatibility
         booking_data = {
             "id": booking_id,
+            "booking_id": booking_id,
             "trip_id": booking.trip_id,
             "trip_name": booking.trip_name,
             "destination": booking.destination,
             "start_date": booking.start_date,
             "end_date": booking.end_date,
             "base_price": base_price,
-            "total_price": calculated_total,  # SERVER-CALCULATED, not client-provided
+            "total_price": calculated_total,
             "passengers": booking.passengers,
+            "email": email,
             "flight_details": booking.flight_details,
             "hotel_details": booking.hotel_details,
+            "special_requests": special_requests,
             "status": "pending",
-            "created_at": datetime.now().isoformat(),
-            "payment_status": "unpaid"
+            "payment_status": "unpaid",
+            "created_at": db_booking.created_at.isoformat() if db_booking.created_at else datetime.now().isoformat()
         }
-        
         bookings_store[booking_id] = booking_data
         
         return {
@@ -179,29 +240,93 @@ async def create_booking(booking: BookingRequest):
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/bookings")
-async def get_bookings():
-    """Get all bookings."""
+async def get_bookings(db: Session = Depends(get_db), status: Optional[str] = None):
+    """Get all bookings, optionally filtered by status."""
     try:
+        query = db.query(Booking).order_by(Booking.created_at.desc())
+        
+        if status:
+            query = query.filter(Booking.status == status)
+        
+        bookings = query.all()
+        
+        result = []
+        for booking in bookings:
+            result.append({
+                "id": booking.booking_id,
+                "booking_id": booking.booking_id,
+                "trip_id": booking.trip_id,
+                "trip_name": booking.trip_name,
+                "destination": booking.destination,
+                "start_date": booking.start_date,
+                "end_date": booking.end_date,
+                "base_price": booking.base_price,
+                "total_price": booking.total_price,
+                "passengers": booking.passengers,
+                "email": booking.email,
+                "flight_details": booking.flight_details,
+                "hotel_details": booking.hotel_details,
+                "special_requests": booking.special_requests,
+                "status": booking.status,
+                "payment_status": booking.payment_status,
+                "created_at": booking.created_at.isoformat() if booking.created_at else None,
+                "confirmed_at": booking.confirmed_at.isoformat() if booking.confirmed_at else None,
+                "cancelled_at": booking.cancelled_at.isoformat() if booking.cancelled_at else None
+            })
+        
         return {
             "status": "success",
-            "bookings": list(bookings_store.values())
+            "bookings": result
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/bookings/{booking_id}")
-async def get_booking(booking_id: str):
-    """Get a specific booking."""
+async def get_booking(booking_id: str, db: Session = Depends(get_db)):
+    """Get a specific booking by booking_id."""
     try:
-        if booking_id not in bookings_store:
+        booking = db.query(Booking).filter(Booking.booking_id == booking_id).first()
+        
+        if not booking:
+            # Fallback to in-memory store for backward compatibility
+            if booking_id in bookings_store:
+                return {
+                    "status": "success",
+                    "booking": bookings_store[booking_id]
+                }
             raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking_data = {
+            "id": booking.booking_id,
+            "booking_id": booking.booking_id,
+            "trip_id": booking.trip_id,
+            "trip_name": booking.trip_name,
+            "destination": booking.destination,
+            "start_date": booking.start_date,
+            "end_date": booking.end_date,
+            "base_price": booking.base_price,
+            "total_price": booking.total_price,
+            "passengers": booking.passengers,
+            "email": booking.email,
+            "flight_details": booking.flight_details,
+            "hotel_details": booking.hotel_details,
+            "special_requests": booking.special_requests,
+            "status": booking.status,
+            "payment_status": booking.payment_status,
+            "stripe_session_id": booking.stripe_session_id,
+            "created_at": booking.created_at.isoformat() if booking.created_at else None,
+            "confirmed_at": booking.confirmed_at.isoformat() if booking.confirmed_at else None,
+            "cancelled_at": booking.cancelled_at.isoformat() if booking.cancelled_at else None,
+            "updated_at": booking.updated_at.isoformat() if booking.updated_at else None
+        }
         
         return {
             "status": "success",
-            "booking": bookings_store[booking_id]
+            "booking": booking_data
         }
     except HTTPException:
         raise
@@ -209,7 +334,7 @@ async def get_booking(booking_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/create-checkout-session")
-async def create_checkout_session(payment: PaymentRequest):
+async def create_checkout_session(payment: PaymentRequest, db: Session = Depends(get_db)):
     """Create a Stripe checkout session for payment."""
     try:
         if not stripe.api_key:
@@ -218,22 +343,48 @@ async def create_checkout_session(payment: PaymentRequest):
                 detail="Stripe is not configured. Please set STRIPE_SECRET_KEY."
             )
         
-        if payment.booking_id not in bookings_store:
-            raise HTTPException(status_code=404, detail="Booking not found")
+        booking = db.query(Booking).filter(Booking.booking_id == payment.booking_id).first()
         
-        booking = bookings_store[payment.booking_id]
-        
-        # SECURITY: Use server-side booking total, not client-provided amount
-        # This prevents payment manipulation
-        actual_amount = booking['total_price']
-        
-        # Validate booking is in a payable state
-        if booking['status'] == 'confirmed':
-            raise HTTPException(status_code=400, detail="Booking is already confirmed")
-        if booking['status'] == 'cancelled':
-            raise HTTPException(status_code=400, detail="Booking is cancelled")
-        if booking['payment_status'] == 'paid':
-            raise HTTPException(status_code=400, detail="Booking is already paid")
+        if not booking:
+            # Fallback to in-memory store
+            if payment.booking_id not in bookings_store:
+                raise HTTPException(status_code=404, detail="Booking not found")
+            booking_dict = bookings_store[payment.booking_id]
+            actual_amount = booking_dict['total_price']
+            
+            # Validate booking is in a payable state (in-memory)
+            if booking_dict.get('status') == 'confirmed':
+                raise HTTPException(status_code=400, detail="Booking is already confirmed")
+            if booking_dict.get('status') == 'cancelled':
+                raise HTTPException(status_code=400, detail="Booking is cancelled")
+            if booking_dict.get('payment_status') == 'paid':
+                raise HTTPException(status_code=400, detail="Booking is already paid")
+            
+            # Use in-memory booking data for Stripe
+            booking_destination = booking_dict.get('destination', 'Unknown')
+            booking_trip_name = booking_dict.get('trip_name', 'Trip')
+            booking_start_date = booking_dict.get('start_date', '')
+            booking_end_date = booking_dict.get('end_date', '')
+            booking_passengers = booking_dict.get('passengers', 1)
+            booking_email = booking_dict.get('email')
+        else:
+            actual_amount = booking.total_price
+            
+            # Validate booking is in a payable state
+            if booking.status == 'confirmed':
+                raise HTTPException(status_code=400, detail="Booking is already confirmed")
+            if booking.status == 'cancelled':
+                raise HTTPException(status_code=400, detail="Booking is cancelled")
+            if booking.payment_status == 'paid':
+                raise HTTPException(status_code=400, detail="Booking is already paid")
+            
+            # Use database booking data for Stripe
+            booking_destination = booking.destination
+            booking_trip_name = booking.trip_name
+            booking_start_date = booking.start_date
+            booking_end_date = booking.end_date
+            booking_passengers = booking.passengers
+            booking_email = booking.email
         
         # Optional: Log if client-provided amount differs from booking total
         if abs(payment.amount - actual_amount) > 0.01:
@@ -245,8 +396,9 @@ async def create_checkout_session(payment: PaymentRequest):
             protocol = 'https://'
         else:
             domains = os.environ.get('REPLIT_DOMAINS', '').split(',')
-            domain = domains[0] if domains else 'localhost:5000'
-            protocol = 'https://'
+            domain = domains[0] if domains and domains[0] else 'localhost:5000'
+            # Use http:// for localhost, https:// for other domains
+            protocol = 'https://' if not domain.startswith('localhost') else 'http://'
         
         # Create Stripe checkout session using TRUSTED server-side amount
         checkout_session = stripe.checkout.Session.create(
@@ -257,8 +409,8 @@ async def create_checkout_session(payment: PaymentRequest):
                         'currency': 'usd',
                         'unit_amount': int(actual_amount * 100),  # Use booking total, not client amount
                         'product_data': {
-                            'name': f"Trip to {booking['destination']}",
-                            'description': f"{booking['trip_name']} - {booking['start_date']} to {booking['end_date']} ({booking['passengers']} passenger(s))",
+                            'name': f"Trip to {booking_destination}",
+                            'description': f"{booking_trip_name} - {booking_start_date} to {booking_end_date} ({booking_passengers} passenger(s))",
                         },
                     },
                     'quantity': 1,
@@ -267,11 +419,17 @@ async def create_checkout_session(payment: PaymentRequest):
             mode='payment',
             success_url=f'{protocol}{domain}/?payment=success&booking_id={payment.booking_id}',
             cancel_url=f'{protocol}{domain}/?payment=cancelled&booking_id={payment.booking_id}',
+            customer_email=booking_email,
             metadata={
                 'booking_id': payment.booking_id,
                 'expected_amount': str(actual_amount)
             }
         )
+        
+        # Update booking with Stripe session ID (only if using database)
+        if booking:
+            booking.stripe_session_id = checkout_session.id
+            db.commit()
         
         return {
             "status": "success",
@@ -284,37 +442,99 @@ async def create_checkout_session(payment: PaymentRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/bookings/{booking_id}/confirm")
-async def confirm_booking(booking_id: str):
+async def confirm_booking(booking_id: str, db: Session = Depends(get_db)):
     """Confirm a booking after successful payment."""
     try:
-        if booking_id not in bookings_store:
-            raise HTTPException(status_code=404, detail="Booking not found")
+        booking = db.query(Booking).filter(Booking.booking_id == booking_id).first()
         
-        bookings_store[booking_id]["status"] = "confirmed"
-        bookings_store[booking_id]["payment_status"] = "paid"
-        bookings_store[booking_id]["confirmed_at"] = datetime.now().isoformat()
+        if not booking:
+            # Fallback to in-memory store
+            if booking_id not in bookings_store:
+                raise HTTPException(status_code=404, detail="Booking not found")
+            bookings_store[booking_id]["status"] = "confirmed"
+            bookings_store[booking_id]["payment_status"] = "paid"
+            bookings_store[booking_id]["confirmed_at"] = datetime.now().isoformat()
+            return {
+                "status": "success",
+                "booking": bookings_store[booking_id]
+            }
+        
+        booking.status = "confirmed"
+        booking.payment_status = "paid"
+        booking.confirmed_at = datetime.utcnow()
+        db.commit()
+        db.refresh(booking)
+        
+        # Also update in-memory store
+        if booking_id in bookings_store:
+            bookings_store[booking_id]["status"] = "confirmed"
+            bookings_store[booking_id]["payment_status"] = "paid"
+            bookings_store[booking_id]["confirmed_at"] = booking.confirmed_at.isoformat()
+        
+        booking_data = {
+            "id": booking.booking_id,
+            "booking_id": booking.booking_id,
+            "trip_id": booking.trip_id,
+            "trip_name": booking.trip_name,
+            "destination": booking.destination,
+            "start_date": booking.start_date,
+            "end_date": booking.end_date,
+            "base_price": booking.base_price,
+            "total_price": booking.total_price,
+            "passengers": booking.passengers,
+            "email": booking.email,
+            "status": booking.status,
+            "payment_status": booking.payment_status,
+            "confirmed_at": booking.confirmed_at.isoformat() if booking.confirmed_at else None
+        }
         
         return {
             "status": "success",
-            "booking": bookings_store[booking_id]
+            "booking": booking_data
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/api/bookings/{booking_id}")
-async def cancel_booking(booking_id: str):
+async def cancel_booking(booking_id: str, db: Session = Depends(get_db)):
     """Cancel a booking."""
     try:
-        if booking_id not in bookings_store:
-            raise HTTPException(status_code=404, detail="Booking not found")
+        booking = db.query(Booking).filter(Booking.booking_id == booking_id).first()
         
-        bookings_store[booking_id]["status"] = "cancelled"
+        if not booking:
+            # Fallback to in-memory store
+            if booking_id not in bookings_store:
+                raise HTTPException(status_code=404, detail="Booking not found")
+            bookings_store[booking_id]["status"] = "cancelled"
+            bookings_store[booking_id]["cancelled_at"] = datetime.now().isoformat()
+            return {
+                "status": "success",
+                "message": "Booking cancelled successfully"
+            }
+        
+        if booking.status == "cancelled":
+            raise HTTPException(status_code=400, detail="Booking is already cancelled")
+        
+        booking.status = "cancelled"
+        booking.cancelled_at = datetime.utcnow()
+        db.commit()
+        
+        # Also update in-memory store
+        if booking_id in bookings_store:
+            bookings_store[booking_id]["status"] = "cancelled"
+            bookings_store[booking_id]["cancelled_at"] = booking.cancelled_at.isoformat()
         
         return {
             "status": "success",
             "message": "Booking cancelled successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/itineraries")
@@ -416,6 +636,83 @@ async def delete_itinerary(itinerary_id: int, db: Session = Depends(get_db)):
         return {
             "status": "success",
             "message": "Itinerary deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bookings/from-itinerary/{itinerary_id}")
+async def create_booking_from_itinerary(itinerary_id: int, passengers: int = 1, db: Session = Depends(get_db)):
+    """Create a booking from a saved itinerary."""
+    try:
+        itinerary = db.query(Itinerary).filter(Itinerary.id == itinerary_id).first()
+        
+        if not itinerary:
+            raise HTTPException(status_code=404, detail="Itinerary not found")
+        
+        # Validate passenger count
+        if passengers < 1 or passengers > 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Passenger count must be between 1 and 10"
+            )
+        
+        # Generate a trip_id from itinerary (or use a default)
+        trip_id = f"itinerary-{itinerary_id}"
+        
+        # Calculate price based on itinerary budget or use default
+        if itinerary.budget:
+            base_price = itinerary.budget / (itinerary.duration_days or 1)
+        else:
+            # Default pricing if no budget specified
+            base_price = 200.0
+        
+        calculated_total = base_price * passengers
+        
+        booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        db_booking = Booking(
+            booking_id=booking_id,
+            trip_id=trip_id,
+            trip_name=itinerary.trip_name,
+            destination=itinerary.destination,
+            start_date=itinerary.start_date,
+            end_date=itinerary.end_date,
+            base_price=base_price,
+            total_price=calculated_total,
+            passengers=passengers,
+            flight_details={},
+            hotel_details={},
+            status="pending",
+            payment_status="unpaid"
+        )
+        
+        db.add(db_booking)
+        db.commit()
+        db.refresh(db_booking)
+        
+        booking_data = {
+            "id": booking_id,
+            "booking_id": booking_id,
+            "trip_id": trip_id,
+            "trip_name": itinerary.trip_name,
+            "destination": itinerary.destination,
+            "start_date": itinerary.start_date,
+            "end_date": itinerary.end_date,
+            "base_price": base_price,
+            "total_price": calculated_total,
+            "passengers": passengers,
+            "status": "pending",
+            "payment_status": "unpaid",
+            "created_at": db_booking.created_at.isoformat() if db_booking.created_at else datetime.now().isoformat()
+        }
+        
+        return {
+            "status": "success",
+            "booking_id": booking_id,
+            "booking": booking_data
         }
     except HTTPException:
         raise

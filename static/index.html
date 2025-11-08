@@ -19,6 +19,7 @@
                 <li class="nav-link" data-page="plan" onclick="navigateTo('plan')">Plan Trip</li>
                 <li class="nav-link" data-page="calendar" onclick="navigateTo('calendar')">📅 Calendar</li>
                 <li class="nav-link" data-page="trips" onclick="navigateTo('trips')">My Trips</li>
+                <li class="nav-link nav-booking" data-page="trips" onclick="navigateTo('trips'); setTimeout(() => loadMyTrips(), 300);" style="background: var(--gradient-1); color: white; border-radius: 25px; padding: 0.5rem 1.5rem; font-weight: 600;">💳 Book Now</li>
                 <li class="nav-link" data-page="preferences" onclick="navigateTo('preferences')">Preferences</li>
             </ul>
         </div>
@@ -45,8 +46,8 @@
 
         <section class="features">
             <div class="container">
-                <h2 class="section-title">Why Choose Our AI Travel Planner?</h2>
-                <div class="features-grid">
+                <h2 class="section-title gradient-text">Why Choose Our AI Travel Planner?</h2>
+                <div class="features-grid" style="animation: fadeInUp 0.8s ease-out;">
                     <div class="feature-card">
                         <div class="feature-icon">🤖</div>
                         <h3 class="feature-title">Autonomous AI Agent</h3>

@@ -1,5 +1,6 @@
 import os
 import json
+import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 from langchain_groq import ChatGroq
@@ -145,7 +146,17 @@ def get_weather_forecast(city: str, date: str) -> str:
         JSON string with weather information
     """
     # Simulate different weather based on month
-    month = int(date.split("-")[1])
+    try:
+        # Parse date in YYYY-MM-DD format
+        date_parts = date.split("-")
+        if len(date_parts) < 2:
+            # Fallback: try to extract month from date string
+            month = 6  # Default to monsoon/fall season
+        else:
+            month = int(date_parts[1])
+    except (ValueError, IndexError):
+        # If date parsing fails, default to monsoon/fall season
+        month = 6
     
     if month in [12, 1, 2]:  # Winter
         weather = {
@@ -365,6 +376,73 @@ def get_user_preferences() -> str:
     }, indent=2)
 
 @tool
+def create_booking(destination: str, trip_name: str, start_date: str, end_date: str, 
+                  passengers: int, base_price: float = 200.0) -> str:
+    """
+    Create a booking for a trip. This will save the booking and allow the user to proceed to payment.
+    
+    Args:
+        destination: Destination city/country
+        trip_name: Name of the trip
+        start_date: Start date in YYYY-MM-DD format
+        end_date: End date in YYYY-MM-DD format
+        passengers: Number of passengers (1-10)
+        base_price: Base price per person (default 200.0)
+        
+    Returns:
+        JSON string with booking confirmation and booking ID
+    """
+    # Calculate total price
+    total_price = base_price * passengers
+    
+    # Generate a trip_id
+    trip_id = f"ai-booking-{destination.lower().replace(' ', '-')}"
+    
+    booking_data = {
+        "trip_id": trip_id,
+        "trip_name": trip_name,
+        "destination": destination,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_price": total_price,
+        "passengers": passengers,
+        "flight_details": {},
+        "hotel_details": {}
+    }
+    
+    try:
+        # Get the base URL from environment or use localhost
+        base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
+        response = requests.post(
+            f"{base_url}/api/bookings",
+            json=booking_data,
+            timeout=5
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            return json.dumps({
+                "status": "success",
+                "message": f"Booking created successfully! Booking ID: {result.get('booking_id', 'N/A')}",
+                "booking_id": result.get('booking_id'),
+                "booking": result.get('booking'),
+                "next_step": "The user can now proceed to payment from the 'My Trips' page."
+            }, indent=2)
+        else:
+            return json.dumps({
+                "status": "error",
+                "message": f"Failed to create booking: {response.text}"
+            }, indent=2)
+    except Exception as e:
+        # If API call fails, return booking info for manual creation
+        return json.dumps({
+            "status": "info",
+            "message": f"Booking details prepared: {trip_name} to {destination} for {passengers} passenger(s) from {start_date} to {end_date}. Total: ${total_price:.2f}",
+            "booking_data": booking_data,
+            "note": "Please visit the 'My Trips' page to complete the booking."
+        }, indent=2)
+
+@tool
 def create_day_by_day_itinerary(destination: str, num_days: int, activities: List[str], 
                                 hotel_name: str, special_interests: Optional[List[str]] = None) -> str:
     """
@@ -438,26 +516,8 @@ class TravelPlannerAgent:
         # Chat history for conversation memory
         self.chat_history = ChatMessageHistory()
         
-        # Create tools list
-        self.tools = [
-            search_flights,
-            search_hotels,
-            get_weather_forecast,
-            search_activities,
-            calculate_trip_budget,
-            save_user_preferences,
-            get_user_preferences,
-            create_day_by_day_itinerary
-        ]
-        
-        # Create the agent
-        self.agent_executor = self._create_agent_executor()
-    
-    def _create_agent_executor(self):
-        """Create the LangGraph agent with tools."""
-        
         # System message for the agent
-        system_message = """You are an autonomous AI travel planning agent with access to powerful tools.
+        self.system_message = """You are an autonomous AI travel planning agent with access to powerful tools.
 
 Your Mission:
 - Understand user travel requests through natural language
@@ -475,6 +535,7 @@ Available Tools:
 - save_user_preferences: Store preferences for future trips
 - get_user_preferences: Retrieve saved preferences
 - create_day_by_day_itinerary: Generate detailed daily plans
+- create_booking: Create a booking for a planned trip (use when user wants to book)
 
 Agent Behavior:
 1. **Always start by checking saved preferences** using get_user_preferences
@@ -485,6 +546,8 @@ Agent Behavior:
 6. **Create itineraries** with day-by-day details
 7. **Save new preferences** when user mentions them
 8. **Be proactive** - if user mentions they "love adventure", save it and suggest adventure activities
+9. **Offer booking** - When user expresses interest in booking or says "book this", use create_booking tool
+10. **Extract booking details** - From the conversation, extract destination, dates, passengers, and price for booking
 
 Response Format:
 - Use clear headings and sections
@@ -495,11 +558,30 @@ Response Format:
 
 Remember: You have autonomy to use multiple tools in sequence to build complete travel plans!"""
         
+        # Create tools list
+        self.tools = [
+            search_flights,
+            search_hotels,
+            get_weather_forecast,
+            search_activities,
+            calculate_trip_budget,
+            save_user_preferences,
+            get_user_preferences,
+            create_day_by_day_itinerary,
+            create_booking
+        ]
+        
+        # Create the agent
+        self.agent_executor = self._create_agent_executor()
+    
+    def _create_agent_executor(self):
+        """Create the LangGraph agent with tools."""
         # Create the agent using LangGraph's create_react_agent
+        # Note: create_react_agent doesn't accept a prompt parameter
+        # System message will be included in messages when invoking
         agent_executor = create_react_agent(
             self.llm,
-            self.tools,
-            prompt=SystemMessage(content=system_message)
+            self.tools
         )
         
         return agent_executor
@@ -510,15 +592,33 @@ Remember: You have autonomy to use multiple tools in sequence to build complete 
             # Prepare chat history for the agent
             chat_history_messages = list(self.chat_history.messages)
             
+            # Check if system message is already in history
+            has_system_message = any(isinstance(msg, SystemMessage) for msg in chat_history_messages)
+            
+            # Include system message at the beginning if not already in history
+            messages = []
+            if not has_system_message:
+                messages.append(SystemMessage(content=self.system_message))
+            messages.extend(chat_history_messages)
+            messages.append(HumanMessage(content=user_request))
+            
             # Invoke the agent with LangGraph
             result = self.agent_executor.invoke({
-                "messages": chat_history_messages + [HumanMessage(content=user_request)]
+                "messages": messages
             })
             
-            # Extract the final response
-            final_message = result["messages"][-1]
+            # Extract the final response - get the last AI message
+            final_message = None
+            for msg in reversed(result["messages"]):
+                if isinstance(msg, AIMessage):
+                    final_message = msg
+                    break
             
-            # Handle different response formats (Gemini returns list, OpenAI returns string)
+            if not final_message:
+                # Fallback to last message
+                final_message = result["messages"][-1]
+            
+            # Handle different response formats
             if hasattr(final_message, 'content'):
                 content = final_message.content
                 # If content is a list (Gemini format), extract text from it
@@ -530,9 +630,13 @@ Remember: You have autonomy to use multiple tools in sequence to build complete 
                         elif isinstance(item, str):
                             response_text += item
                 else:
-                    response_text = str(content)
+                    response_text = str(content) if content else "I'm processing your request..."
             else:
-                response_text = str(final_message)
+                response_text = str(final_message) if final_message else "I'm processing your request..."
+            
+            # Clean up response text
+            if not response_text or response_text.strip() == "":
+                response_text = "I've processed your request. How can I help you further?"
             
             # Add to chat history
             self.chat_history.add_user_message(user_request)
