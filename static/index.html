@@ -734,55 +734,125 @@
     <div id="trips-page" class="page">
         <div class="container" style="padding: 3rem 2rem;">
             <h2 class="section-title">My Travel Plans</h2>
+            <p class="trips-subtitle">Your personalized journeys, ready to book and explore</p>
             <div class="trips-grid">
                 <div class="trip-card">
                     <div class="trip-image">🏖️</div>
                     <div class="trip-content">
-                        <h3 class="trip-title">Goa Beach Vacation</h3>
-                        <div class="trip-meta">📅 Dec 15-20, 2024 • 💰 $450 • 👥 2 people</div>
-                        <p class="feature-desc">
-                            5-day relaxing beach getaway with water sports, local cuisine tours, and sunset cruises.
-                        </p>
-                        <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <h3 class="trip-title">Goa Beach Vacation</h3>
                             <span class="badge badge-primary">Ready to Book</span>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('goa-beach', 'Goa Beach Vacation', 'Goa, India', '2024-12-15', '2024-12-20', 450)">
-                            💳 Book Now
-                        </button>
+                        <div style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+                            📍 Goa, India
+                        </div>
+                        <div class="trip-meta" style="margin-bottom: 1rem;">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <span>📅 Dec 15-20, 2024</span>
+                                <span>⏱️ 5 days</span>
+                                <span>👥 2 people</span>
+                            </div>
+                        </div>
+                        <p class="feature-desc" style="margin-bottom: 1rem;">
+                            5-day relaxing beach getaway with water sports, local cuisine tours, and sunset cruises along the beautiful Arabian Sea coast.
+                        </p>
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 10px;">
+                            <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">✨ Highlights</div>
+                            <ul style="margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                                <li>Beach hopping & water sports</li>
+                                <li>Local seafood experiences</li>
+                                <li>Sunset cruise on Arabian Sea</li>
+                            </ul>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Total Price</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$450</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="openBookingModal('goa-beach', 'Goa Beach Vacation', 'Goa, India', '2024-12-15', '2024-12-20', 450)">
+                                💳 Book Now
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="trip-card">
                     <div class="trip-image" style="background: var(--gradient-2);">🗼</div>
                     <div class="trip-content">
-                        <h3 class="trip-title">Paris Family Trip</h3>
-                        <div class="trip-meta">📅 July 10-17, 2025 • 💰 $3,000 • 👥 4 people</div>
-                        <p class="feature-desc">
-                            Week-long cultural exploration with museum visits, cooking classes, and Seine river cruise.
-                        </p>
-                        <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <h3 class="trip-title">Paris Family Trip</h3>
                             <span class="badge badge-primary">Ready to Book</span>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('paris-family', 'Paris Family Trip', 'Paris, France', '2025-07-10', '2025-07-17', 750)">
-                            💳 Book Now
-                        </button>
+                        <div style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+                            📍 Paris, France
+                        </div>
+                        <div class="trip-meta" style="margin-bottom: 1rem;">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <span>📅 July 10-17, 2025</span>
+                                <span>⏱️ 7 days</span>
+                                <span>👥 4 people</span>
+                            </div>
+                        </div>
+                        <p class="feature-desc" style="margin-bottom: 1rem;">
+                            Week-long cultural exploration with world-class museums, authentic French cooking classes, and a romantic Seine river cruise through the heart of Paris.
+                        </p>
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 10px;">
+                            <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">✨ Highlights</div>
+                            <ul style="margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                                <li>Louvre & Eiffel Tower visits</li>
+                                <li>French cooking masterclass</li>
+                                <li>Seine river dinner cruise</li>
+                            </ul>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Total Price</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$3,000</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="openBookingModal('paris-family', 'Paris Family Trip', 'Paris, France', '2025-07-10', '2025-07-17', 750)">
+                                💳 Book Now
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <div class="trip-card">
                     <div class="trip-image" style="background: var(--gradient-3);">⛰️</div>
                     <div class="trip-content">
-                        <h3 class="trip-title">Manali Adventure</h3>
-                        <div class="trip-meta">📅 March 5-7, 2025 • 💰 $200 • 👥 Solo</div>
-                        <p class="feature-desc">
-                            Weekend trekking and camping adventure in the Himalayas with local guides.
-                        </p>
-                        <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <h3 class="trip-title">Manali Adventure</h3>
                             <span class="badge badge-primary">Ready to Book</span>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('manali-adventure', 'Manali Adventure', 'Manali, India', '2025-03-05', '2025-03-07', 200)">
-                            💳 Book Now
-                        </button>
+                        <div style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1rem;">
+                            📍 Manali, India
+                        </div>
+                        <div class="trip-meta" style="margin-bottom: 1rem;">
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <span>📅 March 5-7, 2025</span>
+                                <span>⏱️ 3 days</span>
+                                <span>👥 Solo</span>
+                            </div>
+                        </div>
+                        <p class="feature-desc" style="margin-bottom: 1rem;">
+                            Weekend trekking and camping adventure in the majestic Himalayas with experienced local guides and breathtaking mountain views.
+                        </p>
+                        <div style="margin-bottom: 1rem; padding: 1rem; background: rgba(99, 102, 241, 0.05); border-radius: 10px;">
+                            <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">✨ Highlights</div>
+                            <ul style="margin: 0; padding-left: 1.25rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                                <li>Mountain trekking trails</li>
+                                <li>Camping under the stars</li>
+                                <li>Expert local guides included</li>
+                            </ul>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--text-secondary);">Total Price</div>
+                                <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">$200</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="openBookingModal('manali-adventure', 'Manali Adventure', 'Manali, India', '2025-03-05', '2025-03-07', 200)">
+                                💳 Book Now
+                            </button>
+                        </div>
                     </div>
                 </div>
 

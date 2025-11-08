@@ -951,11 +951,40 @@ body::before {
     background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
-    border: 2px solid transparent;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    animation: fadeInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+.trip-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.trip-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.trip-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.trip-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .trip-card::after {
@@ -980,9 +1009,9 @@ body::before {
 }
 
 .trip-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 25px 50px rgba(99, 102, 241, 0.25);
-    border-color: var(--primary);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
 .trip-image {
@@ -2401,35 +2430,37 @@ html {
     border-bottom: none;
 }
 
-/* My Trips Page - Scrollable Header */
+/* My Trips Page - Enhanced Layout */
 #trips-page {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    padding-top: 80px;
 }
 
 #trips-page .container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 #trips-page .section-title {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--bg-secondary);
-    padding: 1.5rem 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid var(--border-color);
-    backdrop-filter: blur(10px);
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#trips-page .trips-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
 }
 
 #trips-page .trips-grid {
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    padding-bottom: 3rem;
 }
