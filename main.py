@@ -422,31 +422,94 @@ async def get_booking_options(request: Dict[str, Any] = None):
             num_nights = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
             hotels_data = [
                 {
-                    "name": "Beach Paradise Resort",
-                    "rating": 4.5,
-                    "price_per_night": min(budget * 0.3 / num_nights if num_nights > 0 else budget * 0.3, 120),
-                    "location": "Beachfront",
-                    "amenities": ["Pool", "WiFi", "Breakfast", "Spa", "Beach Access"],
-                    "reviews": 1250,
+                    "name": "Grand Luxury Resort & Spa",
+                    "rating": 4.8,
+                    "price_per_night": min(budget * 0.35 / num_nights if num_nights > 0 else budget * 0.35, 180),
+                    "location": "Beachfront Premium",
+                    "amenities": ["Infinity Pool", "WiFi", "Breakfast", "Spa", "Beach Access", "Fine Dining", "Concierge"],
+                    "reviews": 2340,
                     "style": "luxury"
                 },
                 {
-                    "name": "Cozy Inn & Suites",
-                    "rating": 4.2,
-                    "price_per_night": min(budget * 0.2 / num_nights if num_nights > 0 else budget * 0.2, 80),
-                    "location": "City Center",
-                    "amenities": ["WiFi", "Breakfast", "Parking", "Gym"],
-                    "reviews": 890,
+                    "name": "Ocean View Beach Resort",
+                    "rating": 4.6,
+                    "price_per_night": min(budget * 0.3 / num_nights if num_nights > 0 else budget * 0.3, 145),
+                    "location": "Beachfront",
+                    "amenities": ["Pool", "WiFi", "Breakfast", "Spa", "Beach Access", "Restaurant"],
+                    "reviews": 1680,
+                    "style": "luxury"
+                },
+                {
+                    "name": "Boutique Heritage Hotel",
+                    "rating": 4.5,
+                    "price_per_night": min(budget * 0.28 / num_nights if num_nights > 0 else budget * 0.28, 125),
+                    "location": "Historic District",
+                    "amenities": ["WiFi", "Breakfast", "Rooftop Bar", "Art Gallery", "Cultural Tours"],
+                    "reviews": 945,
+                    "style": "luxury"
+                },
+                {
+                    "name": "Riverside Comfort Inn",
+                    "rating": 4.3,
+                    "price_per_night": min(budget * 0.22 / num_nights if num_nights > 0 else budget * 0.22, 95),
+                    "location": "Riverside",
+                    "amenities": ["WiFi", "Breakfast", "Gym", "River View", "Restaurant"],
+                    "reviews": 1120,
                     "style": "mid-range"
                 },
                 {
-                    "name": "Budget Stay Hotel",
-                    "rating": 3.8,
-                    "price_per_night": min(budget * 0.15 / num_nights if num_nights > 0 else budget * 0.15, 50),
+                    "name": "City Center Business Hotel",
+                    "rating": 4.2,
+                    "price_per_night": min(budget * 0.2 / num_nights if num_nights > 0 else budget * 0.2, 85),
+                    "location": "City Center",
+                    "amenities": ["WiFi", "Breakfast", "Parking", "Gym", "Business Center"],
+                    "reviews": 1450,
+                    "style": "mid-range"
+                },
+                {
+                    "name": "Garden View Suites",
+                    "rating": 4.1,
+                    "price_per_night": min(budget * 0.18 / num_nights if num_nights > 0 else budget * 0.18, 75),
+                    "location": "Garden District",
+                    "amenities": ["WiFi", "Kitchenette", "Parking", "Garden Access"],
+                    "reviews": 780,
+                    "style": "mid-range"
+                },
+                {
+                    "name": "Travelers Hub Hostel",
+                    "rating": 4.0,
+                    "price_per_night": min(budget * 0.12 / num_nights if num_nights > 0 else budget * 0.12, 45),
                     "location": "Near Beach",
-                    "amenities": ["WiFi", "AC", "24/7 Reception"],
-                    "reviews": 456,
+                    "amenities": ["WiFi", "Shared Kitchen", "Common Area", "Lockers"],
+                    "reviews": 620,
                     "style": "budget-friendly"
+                },
+                {
+                    "name": "Cozy Stay Inn",
+                    "rating": 3.9,
+                    "price_per_night": min(budget * 0.15 / num_nights if num_nights > 0 else budget * 0.15, 55),
+                    "location": "Suburban Area",
+                    "amenities": ["WiFi", "AC", "24/7 Reception", "Parking"],
+                    "reviews": 530,
+                    "style": "budget-friendly"
+                },
+                {
+                    "name": "Backpackers Paradise",
+                    "rating": 3.8,
+                    "price_per_night": min(budget * 0.1 / num_nights if num_nights > 0 else budget * 0.1, 35),
+                    "location": "City Outskirts",
+                    "amenities": ["WiFi", "Shared Rooms", "Breakfast", "Tours Desk"],
+                    "reviews": 415,
+                    "style": "budget-friendly"
+                },
+                {
+                    "name": "Airport Express Hotel",
+                    "rating": 4.0,
+                    "price_per_night": min(budget * 0.16 / num_nights if num_nights > 0 else budget * 0.16, 65),
+                    "location": "Near Airport",
+                    "amenities": ["WiFi", "Shuttle Service", "24/7 Reception", "Quick Check-in"],
+                    "reviews": 890,
+                    "style": "mid-range"
                 }
             ]
         
