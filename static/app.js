@@ -60,6 +60,9 @@ function navigateTo(page) {
                 loadMyTrips();
             } else if (page === 'calendar') {
                 loadCalendar();
+            } else if (page === 'plan') {
+                // Show welcome message if chat is empty
+                setTimeout(() => showWelcomeMessage(), 100);
             } else if (page === 'booking') {
                 // Show price summary footer on booking page
                 const footer = document.getElementById("price-summary-footer");
@@ -106,6 +109,51 @@ window.addEventListener('scroll', () => {
     }
 });
 
+function showWelcomeMessage() {
+    const messagesDiv = document.getElementById('chat-messages');
+    if (!messagesDiv || messagesDiv.children.length > 0) return;
+    
+    messagesDiv.innerHTML = `
+        <div class="welcome-message">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1.5rem;">
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="url(#gradient)"/>
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <h2>Ready to Plan Your Dream Trip?</h2>
+            <p>Tell me where you want to go, your budget, and dates. I'll handle everything from flights to accommodations to daily activities!</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                <div style="text-align: center; padding: 1rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); border-radius: 12px; max-width: 200px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z" fill="url(#icon-grad)"/>
+                        <defs><linearGradient id="icon-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#667eea" /><stop offset="100%" style="stop-color:#764ba2" /></linearGradient></defs>
+                    </svg>
+                    <div style="margin-top: 0.5rem; font-weight: 600; color: var(--primary);">Smart Scheduling</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%); border-radius: 12px; max-width: 200px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z" fill="url(#budget-grad)"/>
+                        <defs><linearGradient id="budget-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#764ba2" /><stop offset="100%" style="stop-color:#f093fb" /></linearGradient></defs>
+                    </svg>
+                    <div style="margin-top: 0.5rem; font-weight: 600; color: #a855f7;">Budget Friendly</div>
+                </div>
+                <div style="text-align: center; padding: 1rem; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border-radius: 12px; max-width: 200px;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z" fill="url(#activity-grad)"/>
+                        <defs><linearGradient id="activity-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ec4899" /><stop offset="100%" style="stop-color:#667eea" /></linearGradient></defs>
+                    </svg>
+                    <div style="margin-top: 0.5rem; font-weight: 600; color: #ec4899;">Personalized</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function addMessage(role, content, isTyping = false, animate = true) {
     const messagesDiv = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
@@ -115,7 +163,7 @@ function addMessage(role, content, isTyping = false, animate = true) {
     
     if (isTyping) {
         messageDiv.innerHTML = `
-            <div class="message-bubble typing-indicator">
+            <div class="message-content typing-indicator">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -123,7 +171,7 @@ function addMessage(role, content, isTyping = false, animate = true) {
         `;
     } else {
         messageDiv.innerHTML = `
-            <div class="message-bubble">
+            <div class="message-content">
                 ${formatMessage(content)}
             </div>
         `;
