@@ -155,53 +155,131 @@ async function openBookingModal(tripId, tripName, destination, startDate, endDat
     const modal = document.getElementById('booking-modal');
     const modalBody = document.querySelector('#booking-modal .modal-body');
     
+    const tripImages = {
+        'goa-beach': '🏖️',
+        'paris-family': '🗼',
+        'manali-adventure': '⛰️'
+    };
+    
+    const tripIcon = tripImages[tripId] || '✈️';
+    
     modalBody.innerHTML = `
-        <div class="booking-summary">
-            <h3 style="margin-bottom: 1rem; color: var(--dark);">Trip Summary</h3>
-            <div class="booking-item">
-                <label>Destination:</label>
-                <span>${destination}</span>
-            </div>
-            <div class="booking-item">
-                <label>Trip Duration:</label>
-                <span>${startDate} to ${endDate}</span>
-            </div>
-            <div class="booking-item">
-                <label>Passengers:</label>
-                <span><input type="number" id="passengers" min="1" max="10" value="1" style="width: 60px; padding: 0.25rem; border: 1px solid #e2e8f0; border-radius: 5px;"></span>
-            </div>
-            <div class="booking-item">
-                <label>Total Price:</label>
-                <span id="total-price">$${price.toFixed(2)}</span>
+        <div class="booking-hero">
+            <div class="booking-hero-icon">${tripIcon}</div>
+            <div class="booking-hero-content">
+                <h3 class="booking-destination">${destination}</h3>
+                <p class="booking-subtitle">${tripName}</p>
             </div>
         </div>
         
-        <div class="alert alert-info">
-            💳 <strong>Secure Payment:</strong> You'll be redirected to Stripe's secure checkout page to complete your payment.
+        <div class="booking-summary-card">
+            <div class="booking-row">
+                <div class="booking-detail">
+                    <div class="booking-icon">📅</div>
+                    <div>
+                        <div class="detail-label">Travel Dates</div>
+                        <div class="detail-value">${startDate} to ${endDate}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="booking-row">
+                <div class="booking-detail">
+                    <div class="booking-icon">👥</div>
+                    <div>
+                        <div class="detail-label">Passengers</div>
+                        <div class="passenger-controls">
+                            <button class="passenger-btn" onclick="updatePassengers(-1, ${price})" type="button">
+                                <span>−</span>
+                            </button>
+                            <input type="number" id="passengers" min="1" max="10" value="1" readonly>
+                            <button class="passenger-btn" onclick="updatePassengers(1, ${price})" type="button">
+                                <span>+</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label class="form-label">Contact Email</label>
-            <input type="email" id="booking-email" class="form-input" placeholder="your@email.com" required>
+        <div class="price-breakdown-card">
+            <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">💰 Price Breakdown</h4>
+            <div class="price-row">
+                <span>Base price per person</span>
+                <span id="base-price">$${price.toFixed(2)}</span>
+            </div>
+            <div class="price-row">
+                <span>Number of passengers</span>
+                <span id="passenger-count">1</span>
+            </div>
+            <div class="price-divider"></div>
+            <div class="price-row total-row">
+                <span><strong>Total Amount</strong></span>
+                <span id="total-price" class="total-price">$${price.toFixed(2)}</span>
+            </div>
         </div>
         
-        <div class="form-group">
-            <label class="form-label">Special Requests (Optional)</label>
-            <input type="text" id="special-requests" class="form-input" placeholder="Dietary restrictions, accessibility needs, etc.">
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <span>🔒</span>
+                <span>Secure Payment</span>
+            </div>
+            <div class="trust-badge">
+                <span>✓</span>
+                <span>Instant Confirmation</span>
+            </div>
+            <div class="trust-badge">
+                <span>🛡️</span>
+                <span>Protected Booking</span>
+            </div>
         </div>
         
-        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="processBooking('${tripId}', '${tripName}', '${destination}', '${startDate}', '${endDate}', ${price})">
-            💳 Proceed to Secure Payment
+        <div class="booking-form">
+            <div class="form-group-modern">
+                <label class="form-label-modern">
+                    <span class="label-icon">✉️</span>
+                    <span>Contact Email</span>
+                </label>
+                <input type="email" id="booking-email" class="form-input-modern" placeholder="your@email.com" required>
+            </div>
+            
+            <div class="form-group-modern">
+                <label class="form-label-modern">
+                    <span class="label-icon">📝</span>
+                    <span>Special Requests (Optional)</span>
+                </label>
+                <textarea id="special-requests" class="form-input-modern" rows="3" placeholder="Dietary restrictions, accessibility needs, room preferences..."></textarea>
+            </div>
+        </div>
+        
+        <button class="btn-booking-cta" onclick="processBooking('${tripId}', '${tripName}', '${destination}', '${startDate}', '${endDate}', ${price})">
+            <span class="cta-text">Proceed to Secure Payment</span>
+            <span class="cta-icon">💳</span>
         </button>
+        
+        <div class="booking-footer-note">
+            <p>🔐 Your payment is processed securely through Stripe. You'll be redirected to complete your booking.</p>
+        </div>
     `;
     
     modal.classList.add('active');
+}
+
+function updatePassengers(change, basePrice) {
+    const input = document.getElementById('passengers');
+    let current = parseInt(input.value) || 1;
+    current = Math.max(1, Math.min(10, current + change));
+    input.value = current;
     
-    document.getElementById('passengers').addEventListener('change', (e) => {
-        const passengers = parseInt(e.target.value) || 1;
-        const newTotal = price * passengers;
-        document.getElementById('total-price').textContent = `$${newTotal.toFixed(2)}`;
-    });
+    const total = basePrice * current;
+    document.getElementById('total-price').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('passenger-count').textContent = current;
+    
+    const totalElement = document.getElementById('total-price');
+    totalElement.style.transform = 'scale(1.1)';
+    setTimeout(() => {
+        totalElement.style.transform = 'scale(1)';
+    }, 200);
 }
 
 async function processBooking(tripId, tripName, destination, startDate, endDate, basePrice) {
@@ -345,7 +423,7 @@ function checkPaymentStatus() {
 function showSuccessMessage(message, type = 'success') {
     const alertClass = type === 'success' ? 'alert-success' : 'alert-warning';
     const alert = document.createElement('div');
-    alert.className = `alert ${alertClass}`;
+    alert.className = `alert ${alertClass} success-toast`;
     alert.style.position = 'fixed';
     alert.style.top = '100px';
     alert.style.right = '20px';
