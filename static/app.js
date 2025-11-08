@@ -1625,24 +1625,99 @@ function updateTotalPrice() {
     }
 }
 async function proceedToBooking() {
-    if (selectedFlight === null || selectedHotel === null) { alert("Please select both flight and hotel."); return; }
+    if (selectedFlight === null || selectedHotel === null) {
+        alert("Please select both flight and hotel.");
+        return;
+    }
+    
+    const email = document.getElementById("passenger-email")?.value;
+    if (!email || !email.includes('@')) {
+        alert("Please enter a valid email address.");
+        document.getElementById("passenger-email")?.focus();
+        return;
+    }
+    
     try {
-        const flights = document.querySelectorAll(".flight-option"); const hotels = document.querySelectorAll(".hotel-option");
-        const flightText = flights[selectedFlight].textContent; const flightMatch = flightText.match(/([A-Za-z\s]+)\s+([A-Z0-9]+)/);
-        const flightDetails = { airline: flightMatch?.[1].trim() || "Unknown", flight_number: flightMatch?.[2] || "N/A", price: parseFloat(flightText.match(/\$([\d.]+)/)?.[1] || 0) };
-        const hotelName = hotels[selectedHotel].querySelector(".hotel-name")?.textContent || "Unknown"; const hotelPriceMatch = hotels[selectedHotel].textContent.match(/\$([\d.]+)\/night/);
-        const hotelDetails = { name: hotelName, price_per_night: parseFloat(hotelPriceMatch?.[1] || 0) };
+        const flights = document.querySelectorAll(".flight-option");
+        const hotels = document.querySelectorAll(".hotel-option");
+        
+        const flightText = flights[selectedFlight].textContent;
+        const flightMatch = flightText.match(/([A-Za-z\s]+)\s+([A-Z0-9]+)/);
+        const flightDetails = {
+            airline: flightMatch?.[1].trim() || "Unknown",
+            flight_number: flightMatch?.[2] || "N/A",
+            price: parseFloat(flightText.match(/\$([\d.]+)/)?.[1] || 0)
+        };
+        
+        const hotelName = hotels[selectedHotel].querySelector(".hotel-name")?.textContent || "Unknown";
+        const hotelPriceMatch = hotels[selectedHotel].textContent.match(/\$([\d.]+)\/night/);
+        const hotelDetails = {
+            name: hotelName,
+            price_per_night: parseFloat(hotelPriceMatch?.[1] || 0)
+        };
+        
         const passengersSelect = document.getElementById("passengers-select");
         const passengers = passengersSelect ? parseInt(passengersSelect.value) : parseInt(document.getElementById("passenger-count")?.value || 1);
-        const email = document.getElementById("passenger-email")?.value;
         const specialRequests = document.getElementById("special-requests")?.value;
+        
         const nightsSelect = document.getElementById("nights-select");
         const nights = nightsSelect ? parseInt(nightsSelect.value) : Math.ceil((new Date(bookingTripDetails.end_date) - new Date(bookingTripDetails.start_date)) / (1000 * 60 * 60 * 24));
+        
         const totalPrice = (flightDetails.price * passengers) + (hotelDetails.price_per_night * nights);
-        const response = await fetch("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trip_id: `booking-${Date.now()}`, trip_name: `Trip to ${bookingTripDetails.destination}`, destination: bookingTripDetails.destination, start_date: bookingTripDetails.start_date, end_date: bookingTripDetails.end_date, total_price: totalPrice, passengers: passengers, email: email || undefined, flight_details: flightDetails, hotel_details: hotelDetails, special_requests: specialRequests || undefined }) });
-        const data = await response.json();
-        if (data.status === "success") { showSuccessMessage(`✅ Booking created! ID: ${data.booking_id}`); setTimeout(() => { navigateTo("trips"); loadMyTrips(); }, 2000); } else { alert("Error: " + (data.error || "Unknown error")); }
-    } catch (error) { alert("Error: " + error.message); }
+        
+        const proceedBtn = document.getElementById("proceed-booking-btn");
+        if (proceedBtn) {
+            proceedBtn.disabled = true;
+            proceedBtn.innerHTML = '<div class="loading-spinner-small" style="margin: 0 auto;"></div> Processing...';
+        }
+        
+        const bookingResponse = await fetch("/api/bookings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                trip_id: `booking-${Date.now()}`,
+                trip_name: `Trip to ${bookingTripDetails.destination}`,
+                destination: bookingTripDetails.destination,
+                start_date: bookingTripDetails.start_date,
+                end_date: bookingTripDetails.end_date,
+                total_price: totalPrice,
+                passengers: passengers,
+                email: email,
+                flight_details: flightDetails,
+                hotel_details: hotelDetails,
+                special_requests: specialRequests || undefined
+            })
+        });
+        
+        const bookingData = await bookingResponse.json();
+        
+        if (bookingData.status === "success") {
+            const checkoutResponse = await fetch("/api/create-checkout-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    booking_id: bookingData.booking_id
+                })
+            });
+            
+            const checkoutData = await checkoutResponse.json();
+            
+            if (checkoutData.status === "success" && checkoutData.checkout_url) {
+                window.location.href = checkoutData.checkout_url;
+            } else {
+                throw new Error(checkoutData.error || "Failed to create payment session");
+            }
+        } else {
+            throw new Error(bookingData.error || "Failed to create booking");
+        }
+    } catch (error) {
+        alert("Error: " + error.message);
+        const proceedBtn = document.getElementById("proceed-booking-btn");
+        if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.innerHTML = '💳 Proceed to Payment';
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
