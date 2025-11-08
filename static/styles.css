@@ -18,16 +18,53 @@
     --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    
+    /* Light theme (default) */
+    --bg-primary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: rgba(99, 102, 241, 0.1);
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
+    --navbar-bg: rgba(255, 255, 255, 0.95);
+    --card-bg: rgba(255, 255, 255, 0.9);
+    --input-bg: #ffffff;
+    --chat-user-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --chat-assistant-bg: #f1f5f9;
+    --chat-assistant-text: #1e293b;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+    --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: rgba(99, 102, 241, 0.2);
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+    --navbar-bg: rgba(30, 41, 59, 0.95);
+    --card-bg: rgba(30, 41, 59, 0.9);
+    --input-bg: #334155;
+    --chat-user-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --chat-assistant-bg: #334155;
+    --chat-assistant-text: #f1f5f9;
 }
 
 body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: var(--bg-primary);
     background-attachment: fixed;
-    color: var(--dark);
+    color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
     position: relative;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 body::before {
@@ -91,20 +128,19 @@ body::before {
 }
 
 .navbar {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--navbar-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     position: sticky;
     top: 0;
     z-index: 1000;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .navbar.scrolled {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    background: rgba(255, 255, 255, 0.98);
+    box-shadow: var(--shadow-md);
     padding: 0.5rem 0;
 }
 
@@ -1703,6 +1739,22 @@ textarea.form-input-modern {
     30% {
         transform: translateY(-10px);
         opacity: 1;
+    }
+}
+
+/* Message highlight animation for dynamic effects */
+.message-highlight {
+    animation: messageHighlight 1s ease-out;
+}
+
+@keyframes messageHighlight {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: none;
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
     }
 }
 

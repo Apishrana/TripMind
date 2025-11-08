@@ -3,6 +3,31 @@ let selectedFlight = null;
 let selectedHotel = null;
 let bookingTripDetails = null;
 
+// ========== THEME MANAGEMENT ==========
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+    
+    // Add smooth transition
+    document.body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+}
+
 function navigateTo(page) {
     // Add fade out animation
     const currentActivePage = document.querySelector('.page.active');
@@ -81,10 +106,12 @@ window.addEventListener('scroll', () => {
     }
 });
 
-function addMessage(role, content, isTyping = false) {
+function addMessage(role, content, isTyping = false, animate = true) {
     const messagesDiv = document.getElementById('chat-messages');
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
+    messageDiv.style.opacity = '0';
+    messageDiv.style.transform = 'translateY(20px) scale(0.95)';
     
     if (isTyping) {
         messageDiv.innerHTML = `
@@ -105,10 +132,27 @@ function addMessage(role, content, isTyping = false) {
     messagesDiv.appendChild(messageDiv);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
     
-    // Add entrance animation
-    setTimeout(() => {
+    // Enhanced entrance animation with spring effect
+    if (animate) {
+        setTimeout(() => {
+            messageDiv.style.transition = 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            messageDiv.style.opacity = '1';
+            messageDiv.style.transform = 'translateY(0) scale(1)';
+        }, 10);
+    } else {
         messageDiv.style.opacity = '1';
-    }, 10);
+        messageDiv.style.transform = 'translateY(0) scale(1)';
+    }
+    
+    // Add shimmer effect for AI messages
+    if (role === 'assistant' && !isTyping) {
+        setTimeout(() => {
+            messageDiv.classList.add('message-highlight');
+            setTimeout(() => {
+                messageDiv.classList.remove('message-highlight');
+            }, 1000);
+        }, 200);
+    }
 }
 
 function formatMessage(content) {
