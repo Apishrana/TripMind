@@ -9,6 +9,9 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Navbar Cleanup**: Simplified navigation bar design
+  - Removed emojis from Calendar and Book Now buttons for a cleaner, more professional look
+  - Kept theme toggle emoji for visual clarity
 - **Plan Trip Page Improvements**: Enhanced layout and user experience
   - Optimized travel illustration size to 86% width (max 520px) for better visual presence while preventing text overflow
   - Centered illustration with proper margins for better visual balance
