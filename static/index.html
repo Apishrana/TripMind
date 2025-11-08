@@ -3,427 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Planner AI Agent</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .main-content {
-            display: flex;
-            height: 600px;
-        }
-        
-        .sidebar {
-            width: 300px;
-            background: #f8f9fa;
-            border-right: 1px solid #e0e0e0;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .sidebar h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-        
-        .example {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        
-        .example:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-        
-        .example-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        
-        .example-text {
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #fafafa;
-        }
-        
-        .message {
-            margin-bottom: 20px;
-            animation: fadeIn 0.3s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .message.user {
-            text-align: right;
-        }
-        
-        .message-content {
-            display: inline-block;
-            max-width: 70%;
-            padding: 15px 20px;
-            border-radius: 20px;
-            text-align: left;
-        }
-        
-        .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .message.assistant .message-content {
-            background: white;
-            color: #333;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .message-label {
-            font-size: 0.8em;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .input-area {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-        }
-        
-        .input-container {
-            display: flex;
-            gap: 10px;
-        }
-        
-        #userInput {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-        
-        #userInput:focus {
-            border-color: #667eea;
-        }
-        
-        #sendBtn, #clearBtn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-        
-        #sendBtn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        #sendBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        #sendBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        #clearBtn {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        #clearBtn:hover {
-            background: #e0e0e0;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
-            border-radius: 50%;
-            border-top-color: #667eea;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .info-badge {
-            display: inline-block;
-            background: #e7f3ff;
-            color: #0066cc;
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            margin: 5px 5px 5px 0;
-        }
-        
-        pre {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 10px 0;
-        }
-        
-        code {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-    </style>
+    <title>Travel Planner AI - Your Autonomous Travel Assistant</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌍 Travel Planner AI Agent</h1>
-            <p>Your autonomous travel planning assistant with reasoning & memory</p>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo" onclick="navigateTo('home')">
+                ✈️ Travel Planner AI
+            </div>
+            <ul class="nav-links">
+                <li class="nav-link active" data-page="home" onclick="navigateTo('home')">Home</li>
+                <li class="nav-link" data-page="plan" onclick="navigateTo('plan')">Plan Trip</li>
+                <li class="nav-link" data-page="trips" onclick="navigateTo('trips')">My Trips</li>
+                <li class="nav-link" data-page="preferences" onclick="navigateTo('preferences')">Preferences</li>
+            </ul>
         </div>
-        
-        <div class="main-content">
-            <div class="sidebar">
-                <h3>💡 Quick Examples</h3>
-                
-                <div class="example" onclick="setExample('Plan a 5-day beach trip in Goa under $500 in December')">
-                    <div class="example-title">🏖️ Beach Vacation</div>
-                    <div class="example-text">5-day Goa trip under $500</div>
+    </nav>
+
+    <!-- Home Page -->
+    <div id="home-page" class="page active">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Plan Your Dream Vacation</h1>
+                <p class="hero-subtitle">
+                    Powered by AI, designed for you. Let our autonomous travel agent create the perfect itinerary in seconds.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="navigateTo('plan')">
+                        🚀 Start Planning
+                    </button>
+                    <button class="btn btn-secondary" onclick="navigateTo('preferences')">
+                        ⚙️ Set Preferences
+                    </button>
                 </div>
-                
-                <div class="example" onclick="setExample('I want to visit Paris for 7 days with my family, budget is $3000, we love museums and food')">
-                    <div class="example-title">🗼 Family Trip</div>
-                    <div class="example-text">7-day Paris with culture & food</div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Why Choose Our AI Travel Planner?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3 class="feature-title">Autonomous AI Agent</h3>
+                        <p class="feature-desc">
+                            Our AI independently researches, plans, and optimizes your entire trip using advanced reasoning and decision-making.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">💰</div>
+                        <h3 class="feature-title">Budget Optimization</h3>
+                        <p class="feature-desc">
+                            Get the best value for your money with smart budget allocation across flights, hotels, and activities.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🧠</div>
+                        <h3 class="feature-title">Remembers Your Style</h3>
+                        <p class="feature-desc">
+                            The AI learns and remembers your preferences to make every future trip planning even better and faster.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">✈️</div>
+                        <h3 class="feature-title">Complete Itineraries</h3>
+                        <p class="feature-desc">
+                            Get detailed day-by-day plans with flights, hotels, activities, and local recommendations all in one place.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🌤️</div>
+                        <h3 class="feature-title">Weather-Smart Planning</h3>
+                        <p class="feature-desc">
+                            AI checks weather forecasts and suggests the best times to visit your destination for optimal experience.
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Personalized Activities</h3>
+                        <p class="feature-desc">
+                            Discover activities and attractions tailored to your interests, from adventure to culture to relaxation.
+                        </p>
+                    </div>
                 </div>
-                
-                <div class="example" onclick="setExample('Plan a weekend adventure trip to Manali for trekking and camping, budget $200')">
-                    <div class="example-title">⛰️ Adventure</div>
-                    <div class="example-text">Weekend trekking in Manali</div>
-                </div>
-                
-                <div class="example" onclick="setExample('I prefer luxury hotels, vegetarian food, and cultural activities. Save this for future trips.')">
-                    <div class="example-title">💾 Save Preferences</div>
-                    <div class="example-text">Store travel preferences</div>
-                </div>
-                
-                <div class="example" onclick="setExample('What are my saved travel preferences?')">
-                    <div class="example-title">📋 View Preferences</div>
-                    <div class="example-text">Check saved preferences</div>
-                </div>
-                
-                <div class="example" onclick="setExample('Suggest a budget-friendly tropical destination for next month')">
-                    <div class="example-title">🌴 AI Suggestion</div>
-                    <div class="example-text">Let AI suggest destinations</div>
-                </div>
-                
-                <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px;">
-                    <strong>✨ Features:</strong>
-                    <div style="margin-top: 10px; font-size: 0.9em;">
-                        • Natural language understanding<br>
-                        • Autonomous planning<br>
-                        • Budget optimization<br>
-                        • Memory & preferences<br>
-                        • Multi-step reasoning<br>
-                        • Activity recommendations
+
+                <div style="margin-top: 4rem; text-align: center;">
+                    <h3 style="font-size: 2rem; margin-bottom: 2rem;">✨ Quick Start Examples</h3>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="setQuickExample('Plan a 5-day beach vacation in Goa under $500 in December')">
+                            🏖️ Beach Getaway
+                        </button>
+                        <button class="btn btn-primary" onclick="setQuickExample('Plan a 7-day family trip to Paris with museums and food, budget $3000')">
+                            🗼 Family Adventure
+                        </button>
+                        <button class="btn btn-primary" onclick="setQuickExample('Weekend trekking trip to Manali for adventure and camping, budget $200')">
+                            ⛰️ Adventure Trek
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <div class="chat-area">
-                <div class="messages" id="messages">
-                    <div class="message assistant">
-                        <div class="message-content">
-                            <div class="message-label">AI Agent</div>
-                            👋 Hello! I'm your autonomous travel planning assistant. I can help you:
-                            <br><br>
-                            <span class="info-badge">Plan complete trips</span>
-                            <span class="info-badge">Find flights & hotels</span>
-                            <span class="info-badge">Create itineraries</span>
-                            <span class="info-badge">Manage budgets</span>
-                            <span class="info-badge">Remember preferences</span>
-                            <br><br>
-                            Just tell me where you'd like to go, your budget, and any preferences - I'll handle the rest autonomously! 🚀
+        </section>
+    </div>
+
+    <!-- Plan Trip Page -->
+    <div id="plan-page" class="page">
+        <div class="chat-container">
+            <div class="chat-box">
+                <div class="chat-header">
+                    <div>
+                        <span>🤖 AI Travel Assistant</span>
+                        <div style="font-size: 0.9rem; font-weight: 400; opacity: 0.9; margin-top: 0.3rem;">
+                            Autonomous planning powered by advanced AI
                         </div>
                     </div>
+                    <button class="btn btn-secondary" style="padding: 0.5rem 1.5rem;" onclick="clearChat()">
+                        🔄 Clear Chat
+                    </button>
                 </div>
                 
-                <div class="input-area">
-                    <div class="input-container">
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be added here -->
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
                         <input 
                             type="text" 
-                            id="userInput" 
-                            placeholder="E.g., Plan a 5-day beach trip to Goa under $500 in December..."
-                            onkeypress="if(event.key==='Enter') sendMessage()"
+                            id="chat-input" 
+                            class="chat-input"
+                            placeholder="E.g., Plan a 5-day beach trip to Bali under $1000 in March..."
                         />
-                        <button id="sendBtn" onclick="sendMessage()">Send</button>
-                        <button id="clearBtn" onclick="clearChat()">Clear</button>
+                        <button id="send-btn" class="btn btn-primary" onclick="sendMessage()">
+                            ✈️ Send
+                        </button>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Plan a romantic getaway for 2 in Santorini, 5 days, budget $2000'">
+                            💑 Romantic Getaway
+                        </span>
+                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Budget backpacking trip across Thailand for 2 weeks under $800'">
+                            🎒 Backpacking Adventure
+                        </span>
+                        <span class="badge badge-primary" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'Luxury wellness retreat in Bali, 7 days, spa and yoga focused'">
+                            🧘 Wellness Retreat
+                        </span>
+                        <span class="badge badge-success" style="cursor: pointer;" onclick="document.getElementById('chat-input').value = 'What are my saved preferences?'">
+                            📋 View My Preferences
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script>
-        function setExample(text) {
-            document.getElementById('userInput').value = text;
-            document.getElementById('userInput').focus();
-        }
-        
-        function addMessage(role, content) {
-            const messagesDiv = document.getElementById('messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role}`;
-            
-            const label = role === 'user' ? 'You' : 'AI Agent';
-            
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-label">${label}</div>
-                    ${formatMessage(content)}
+
+    <!-- My Trips Page -->
+    <div id="trips-page" class="page">
+        <div class="container" style="padding: 3rem 2rem;">
+            <h2 class="section-title">My Travel Plans</h2>
+            <div class="trips-grid">
+                <div class="trip-card">
+                    <div class="trip-image">🏖️</div>
+                    <div class="trip-content">
+                        <h3 class="trip-title">Goa Beach Vacation</h3>
+                        <div class="trip-meta">📅 Dec 15-20, 2024 • 💰 $450 • 👥 2 people</div>
+                        <p class="feature-desc">
+                            5-day relaxing beach getaway with water sports, local cuisine tours, and sunset cruises.
+                        </p>
+                        <div style="margin-top: 1rem;">
+                            <span class="badge badge-primary">Ready to Book</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('goa-beach', 'Goa Beach Vacation', 'Goa, India', '2024-12-15', '2024-12-20', 450)">
+                            💳 Book Now
+                        </button>
+                    </div>
                 </div>
-            `;
+
+                <div class="trip-card">
+                    <div class="trip-image" style="background: var(--gradient-2);">🗼</div>
+                    <div class="trip-content">
+                        <h3 class="trip-title">Paris Family Trip</h3>
+                        <div class="trip-meta">📅 July 10-17, 2025 • 💰 $3,000 • 👥 4 people</div>
+                        <p class="feature-desc">
+                            Week-long cultural exploration with museum visits, cooking classes, and Seine river cruise.
+                        </p>
+                        <div style="margin-top: 1rem;">
+                            <span class="badge badge-primary">Ready to Book</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('paris-family', 'Paris Family Trip', 'Paris, France', '2025-07-10', '2025-07-17', 750)">
+                            💳 Book Now
+                        </button>
+                    </div>
+                </div>
+
+                <div class="trip-card">
+                    <div class="trip-image" style="background: var(--gradient-3);">⛰️</div>
+                    <div class="trip-content">
+                        <h3 class="trip-title">Manali Adventure</h3>
+                        <div class="trip-meta">📅 March 5-7, 2025 • 💰 $200 • 👥 Solo</div>
+                        <p class="feature-desc">
+                            Weekend trekking and camping adventure in the Himalayas with local guides.
+                        </p>
+                        <div style="margin-top: 1rem;">
+                            <span class="badge badge-primary">Ready to Book</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="openBookingModal('manali-adventure', 'Manali Adventure', 'Manali, India', '2025-03-05', '2025-03-07', 200)">
+                            💳 Book Now
+                        </button>
+                    </div>
+                </div>
+
+                <div class="trip-card" style="border: 2px dashed var(--primary); background: rgba(99, 102, 241, 0.05);">
+                    <div class="trip-image" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">➕</div>
+                    <div class="trip-content" style="text-align: center;">
+                        <h3 class="trip-title" style="color: var(--primary);">Plan New Trip</h3>
+                        <p class="feature-desc" style="margin: 1rem 0;">
+                            Ready for your next adventure? Let our AI help you plan the perfect trip!
+                        </p>
+                        <button class="btn btn-primary" onclick="navigateTo('plan')">
+                            🚀 Start Planning
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preferences Page -->
+    <div id="preferences-page" class="page">
+        <div class="preferences-container" style="padding: 3rem 2rem;">
+            <h2 class="section-title">Travel Preferences</h2>
             
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-        
-        function formatMessage(content) {
-            // Basic formatting for better readability
-            content = content.replace(/\n/g, '<br>');
-            
-            // Highlight JSON blocks
-            content = content.replace(/```json\n([\s\S]*?)\n```/g, '<pre><code>$1</code></pre>');
-            content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-            
-            // Make links clickable
-            content = content.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
-            
-            return content;
-        }
-        
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const sendBtn = document.getElementById('sendBtn');
-            const message = input.value.trim();
-            
-            if (!message) return;
-            
-            // Add user message
-            addMessage('user', message);
-            input.value = '';
-            
-            // Disable input while processing
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading"></span>';
-            
-            try {
-                const response = await fetch('/api/plan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: message })
-                });
+            <div class="preferences-card">
+                <h3 style="margin-bottom: 1.5rem; color: var(--dark);">Set Your Travel Style</h3>
+                <p class="feature-desc" style="margin-bottom: 2rem;">
+                    Tell us your preferences so our AI can create perfectly tailored trips for you. These settings will be remembered for all future planning.
+                </p>
                 
-                const data = await response.json();
+                <div class="form-group">
+                    <label class="form-label">💰 Budget Preference</label>
+                    <select id="pref-budget" class="form-select">
+                        <option value="budget-friendly">Budget-Friendly (Economy)</option>
+                        <option value="moderate">Moderate (Comfort)</option>
+                        <option value="luxury">Luxury (Premium)</option>
+                    </select>
+                </div>
                 
-                if (data.status === 'success') {
-                    addMessage('assistant', data.response);
-                } else {
-                    addMessage('assistant', '❌ Error: ' + (data.error || 'Something went wrong'));
-                }
-            } catch (error) {
-                addMessage('assistant', '❌ Error connecting to server: ' + error.message);
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = 'Send';
-            }
-        }
-        
-        async function clearChat() {
-            if (confirm('Clear conversation history?')) {
-                const messagesDiv = document.getElementById('messages');
-                messagesDiv.innerHTML = '';
+                <div class="form-group">
+                    <label class="form-label">🏨 Accommodation Style</label>
+                    <select id="pref-style" class="form-select">
+                        <option value="hostel">Hostels & Budget Hotels</option>
+                        <option value="3-star">3-Star Hotels</option>
+                        <option value="4-star">4-Star Hotels</option>
+                        <option value="luxury">Luxury 5-Star Hotels</option>
+                        <option value="boutique">Boutique & Unique Stays</option>
+                        <option value="resort">Beach/Mountain Resorts</option>
+                    </select>
+                </div>
                 
-                // Reset memory on server
-                try {
-                    await fetch('/api/reset', { method: 'POST' });
-                } catch (error) {
-                    console.error('Error resetting memory:', error);
-                }
+                <div class="form-group">
+                    <label class="form-label">🎯 Preferred Activities</label>
+                    <input 
+                        type="text" 
+                        id="pref-activities" 
+                        class="form-input"
+                        placeholder="E.g., beaches, museums, adventure sports, food tours, nightlife..."
+                    />
+                </div>
                 
-                // Add welcome message
-                addMessage('assistant', 
-                    '👋 Chat cleared! I\'m ready to help you plan your next adventure. ' +
-                    'Tell me where you\'d like to go! 🌍'
-                );
-            }
-        }
-    </script>
+                <div class="form-group">
+                    <label class="form-label">🍽️ Dietary Preferences</label>
+                    <input 
+                        type="text" 
+                        id="pref-diet" 
+                        class="form-input"
+                        placeholder="E.g., vegetarian, vegan, halal, kosher, no restrictions..."
+                    />
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">✈️ Travel Pace</label>
+                    <select id="pref-pace" class="form-select">
+                        <option value="relaxed">Relaxed (2-3 activities per day)</option>
+                        <option value="moderate">Moderate (3-4 activities per day)</option>
+                        <option value="packed">Packed (5+ activities per day)</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="savePreferencesForm()">
+                    💾 Save Preferences
+                </button>
+            </div>
+            
+            <div id="saved-preferences">
+                <!-- Saved preferences will load here -->
+            </div>
+            
+            <div class="preferences-card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid var(--primary);">
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">💡 Pro Tip</h3>
+                <p class="feature-desc">
+                    You can also set preferences naturally by chatting with the AI! Just say something like 
+                    <i>"I prefer luxury hotels and love adventure activities"</i> and the AI will remember it.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📝 Complete Your Booking</h2>
+                <button class="modal-close" onclick="closeModal('booking-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
 </body>
 </html>

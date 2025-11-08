@@ -1,16 +1,33 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from agent.travel_agent import TravelPlannerAgent
 import uvicorn
+import stripe
+from typing import Optional, Dict, Any
+from datetime import datetime
+import json
 
 # Initialize FastAPI app
 app = FastAPI(title="Travel Planner AI Agent")
 
+# Initialize Stripe (API key will be set from environment)
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
+
 # Initialize the AI agent
 agent = TravelPlannerAgent()
+
+# In-memory storage for bookings (in production, use a database)
+bookings_store = {}
+
+# Server-side trip pricing (canonical source of truth)
+TRIP_PRICES = {
+    "goa-beach": 450.00,
+    "paris-family": 750.00,
+    "manali-adventure": 200.00
+}
 
 # Request/Response models
 class TravelQuery(BaseModel):
@@ -21,6 +38,21 @@ class TravelResponse(BaseModel):
     response: str
     request: str = ""
     error: str = ""
+
+class BookingRequest(BaseModel):
+    trip_id: str
+    trip_name: str
+    destination: str
+    start_date: str
+    end_date: str
+    total_price: float
+    passengers: int
+    flight_details: Optional[Dict[str, Any]] = None
+    hotel_details: Optional[Dict[str, Any]] = None
+
+class PaymentRequest(BaseModel):
+    booking_id: str
+    amount: float
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -74,6 +106,197 @@ async def get_preferences():
         return {
             "status": "success",
             "preferences": user_preferences_store
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bookings")
+async def create_booking(booking: BookingRequest):
+    """Create a new booking with server-side price calculation."""
+    try:
+        # SECURITY: Calculate price server-side using canonical trip prices
+        # Ignore any client-provided total_price
+        
+        if booking.trip_id not in TRIP_PRICES:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Unknown trip ID: {booking.trip_id}"
+            )
+        
+        # Validate passenger count
+        if booking.passengers < 1 or booking.passengers > 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Passenger count must be between 1 and 10"
+            )
+        
+        # Calculate total using TRUSTED server-side pricing
+        base_price = TRIP_PRICES[booking.trip_id]
+        calculated_total = base_price * booking.passengers
+        
+        booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        
+        booking_data = {
+            "id": booking_id,
+            "trip_id": booking.trip_id,
+            "trip_name": booking.trip_name,
+            "destination": booking.destination,
+            "start_date": booking.start_date,
+            "end_date": booking.end_date,
+            "base_price": base_price,
+            "total_price": calculated_total,  # SERVER-CALCULATED, not client-provided
+            "passengers": booking.passengers,
+            "flight_details": booking.flight_details,
+            "hotel_details": booking.hotel_details,
+            "status": "pending",
+            "created_at": datetime.now().isoformat(),
+            "payment_status": "unpaid"
+        }
+        
+        bookings_store[booking_id] = booking_data
+        
+        return {
+            "status": "success",
+            "booking_id": booking_id,
+            "booking": booking_data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/bookings")
+async def get_bookings():
+    """Get all bookings."""
+    try:
+        return {
+            "status": "success",
+            "bookings": list(bookings_store.values())
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/bookings/{booking_id}")
+async def get_booking(booking_id: str):
+    """Get a specific booking."""
+    try:
+        if booking_id not in bookings_store:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        return {
+            "status": "success",
+            "booking": bookings_store[booking_id]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/create-checkout-session")
+async def create_checkout_session(payment: PaymentRequest):
+    """Create a Stripe checkout session for payment."""
+    try:
+        if not stripe.api_key:
+            raise HTTPException(
+                status_code=400, 
+                detail="Stripe is not configured. Please set STRIPE_SECRET_KEY."
+            )
+        
+        if payment.booking_id not in bookings_store:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking = bookings_store[payment.booking_id]
+        
+        # SECURITY: Use server-side booking total, not client-provided amount
+        # This prevents payment manipulation
+        actual_amount = booking['total_price']
+        
+        # Validate booking is in a payable state
+        if booking['status'] == 'confirmed':
+            raise HTTPException(status_code=400, detail="Booking is already confirmed")
+        if booking['status'] == 'cancelled':
+            raise HTTPException(status_code=400, detail="Booking is cancelled")
+        if booking['payment_status'] == 'paid':
+            raise HTTPException(status_code=400, detail="Booking is already paid")
+        
+        # Optional: Log if client-provided amount differs from booking total
+        if abs(payment.amount - actual_amount) > 0.01:
+            print(f"Warning: Client amount ({payment.amount}) differs from booking total ({actual_amount})")
+        
+        # Get the domain for success/cancel URLs
+        domain = os.environ.get('REPLIT_DEV_DOMAIN', 'localhost:5000')
+        if os.environ.get('REPLIT_DEPLOYMENT'):
+            protocol = 'https://'
+        else:
+            domains = os.environ.get('REPLIT_DOMAINS', '').split(',')
+            domain = domains[0] if domains else 'localhost:5000'
+            protocol = 'https://'
+        
+        # Create Stripe checkout session using TRUSTED server-side amount
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'usd',
+                        'unit_amount': int(actual_amount * 100),  # Use booking total, not client amount
+                        'product_data': {
+                            'name': f"Trip to {booking['destination']}",
+                            'description': f"{booking['trip_name']} - {booking['start_date']} to {booking['end_date']} ({booking['passengers']} passenger(s))",
+                        },
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=f'{protocol}{domain}/?payment=success&booking_id={payment.booking_id}',
+            cancel_url=f'{protocol}{domain}/?payment=cancelled&booking_id={payment.booking_id}',
+            metadata={
+                'booking_id': payment.booking_id,
+                'expected_amount': str(actual_amount)
+            }
+        )
+        
+        return {
+            "status": "success",
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id
+        }
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/bookings/{booking_id}/confirm")
+async def confirm_booking(booking_id: str):
+    """Confirm a booking after successful payment."""
+    try:
+        if booking_id not in bookings_store:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        bookings_store[booking_id]["status"] = "confirmed"
+        bookings_store[booking_id]["payment_status"] = "paid"
+        bookings_store[booking_id]["confirmed_at"] = datetime.now().isoformat()
+        
+        return {
+            "status": "success",
+            "booking": bookings_store[booking_id]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/bookings/{booking_id}")
+async def cancel_booking(booking_id: str):
+    """Cancel a booking."""
+    try:
+        if booking_id not in bookings_store:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        bookings_store[booking_id]["status"] = "cancelled"
+        
+        return {
+            "status": "success",
+            "message": "Booking cancelled successfully"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

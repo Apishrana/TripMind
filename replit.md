@@ -4,9 +4,26 @@
 
 An autonomous AI-powered travel planning application that processes natural language queries to create complete travel itineraries. The system uses LangGraph's ReAct (Reasoning + Acting) agent framework to orchestrate multiple specialized tools, enabling the AI to autonomously chain actions like searching flights, finding hotels, checking weather, and generating day-by-day itineraries. Built with FastAPI for the backend and vanilla JavaScript for the frontend, it provides a simple yet powerful interface for intelligent travel planning.
 
+**NEW: Complete Booking System** - Now includes secure Stripe payment integration, allowing users to book and pay for trips directly through the platform with full booking management and payment confirmation.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Updates (November 8, 2025)
+
+### Major UI Enhancements
+- **Multi-page Design**: Transformed single-page app into modern multi-page experience (Home, Plan Trip, My Trips, Preferences)
+- **Stunning Animations**: Added pulse, bounce, shimmer, floating, and modal animations
+- **Eye-catching Gradients**: Beautiful gradient backgrounds throughout the app
+- **Responsive Modals**: Backdrop blur, smooth transitions, and mobile-optimized designs
+
+### Booking System Implementation
+- **Secure Payment Processing**: Full Stripe Checkout integration
+- **Server-side Pricing**: All prices validated server-side to prevent manipulation
+- **Booking Management**: Create, view, confirm, and cancel bookings
+- **Payment Flow**: Complete checkout → payment → confirmation flow
+- **Real-time Updates**: Dynamic booking status and payment tracking
 
 ## System Architecture
 
