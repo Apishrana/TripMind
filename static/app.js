@@ -41,6 +41,16 @@ function navigateTo(page) {
     
     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
     
+    // Show/hide navbar based on page
+    const navbar = document.getElementById('main-navbar');
+    if (navbar) {
+        if (page === 'welcome' || page === 'signin' || page === 'signup') {
+            navbar.style.display = 'none';
+        } else {
+            navbar.style.display = 'block';
+        }
+    }
+    
     const pageElement = document.getElementById(`${page}-page`);
     if (pageElement) {
         setTimeout(() => {
@@ -1720,6 +1730,146 @@ async function proceedToBooking() {
     }
 }
 
+// ========== AUTHENTICATION ==========
+async function handleSignIn(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
+    
+    const submitBtn = event.target.querySelector('.btn-submit');
+    const btnText = submitBtn.querySelector('span');
+    const btnSpinner = submitBtn.querySelector('.btn-spinner');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/auth/signin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password, remember_me: rememberMe })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // Store user session
+            localStorage.setItem('user', JSON.stringify(data.user));
+            if (rememberMe) {
+                localStorage.setItem('auth_token', data.token);
+            } else {
+                sessionStorage.setItem('auth_token', data.token);
+            }
+            
+            // Show success message
+            showSuccessMessage('✅ Welcome back! Redirecting to home...');
+            
+            // Navigate to home
+            setTimeout(() => {
+                navigateTo('home');
+            }, 1000);
+        } else {
+            alert(data.message || 'Sign in failed. Please check your credentials.');
+        }
+    } catch (error) {
+        console.error('Sign in error:', error);
+        alert('An error occurred during sign in. Please try again.');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.style.display = 'block';
+        btnSpinner.style.display = 'none';
+    }
+}
+
+async function handleSignUp(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const termsAgree = document.getElementById('terms-agree').checked;
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+    
+    // Validate password strength
+    if (password.length < 8) {
+        alert('Password must be at least 8 characters long!');
+        return;
+    }
+    
+    // Validate terms agreement
+    if (!termsAgree) {
+        alert('Please agree to the Terms of Service and Privacy Policy!');
+        return;
+    }
+    
+    const submitBtn = event.target.querySelector('.btn-submit');
+    const btnText = submitBtn.querySelector('span');
+    const btnSpinner = submitBtn.querySelector('.btn-spinner');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.style.display = 'none';
+    btnSpinner.style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // Store user session
+            localStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('auth_token', data.token);
+            
+            // Show success message
+            showSuccessMessage('✅ Account created successfully! Welcome aboard!');
+            
+            // Navigate to home
+            setTimeout(() => {
+                navigateTo('home');
+            }, 1000);
+        } else {
+            alert(data.message || 'Sign up failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Sign up error:', error);
+        alert('An error occurred during sign up. Please try again.');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        btnText.style.display = 'block';
+        btnSpinner.style.display = 'none';
+    }
+}
+
+function logout() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_token');
+    navigateTo('welcome');
+}
+
+function checkAuth() {
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    return user && token;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme FIRST before any visual elements
     initTheme();
@@ -1752,7 +1902,13 @@ document.addEventListener('DOMContentLoaded', () => {
         footer.style.display = "none";
     }
     
-    navigateTo('home');
+    // Check authentication and navigate accordingly
+    if (checkAuth()) {
+        navigateTo('home');
+    } else {
+        navigateTo('welcome');
+    }
+    
     checkPaymentStatus();
     
     const chatInput = document.getElementById('chat-input');
@@ -1767,9 +1923,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add welcome message with animation
     setTimeout(() => {
-        addMessage('assistant', 
-            '👋 Hello! I\'m your AI travel planning assistant. I can help you plan complete trips, find flights & hotels, create itineraries, manage budgets, and remember your preferences. I can also create bookings for you! Just tell me where you\'d like to go or say "I want to book a trip" to get started! 🚀'
-        );
+        if (checkAuth()) {
+            addMessage('assistant', 
+                '👋 Hello! I\'m your AI travel planning assistant. I can help you plan complete trips, find flights & hotels, create itineraries, manage budgets, and remember your preferences. I can also create bookings for you! Just tell me where you\'d like to go or say "I want to book a trip" to get started! 🚀'
+            );
+        }
     }, 500);
     
     // Add parallax effect on scroll

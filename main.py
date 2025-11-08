@@ -69,6 +69,16 @@ class PaymentRequest(BaseModel):
     booking_id: str
     amount: float
 
+class AuthSignInRequest(BaseModel):
+    email: str
+    password: str
+    remember_me: Optional[bool] = False
+
+class AuthSignUpRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
 class CalendarEventRequest(BaseModel):
     title: str
     description: Optional[str] = None
@@ -101,6 +111,106 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def read_root():
     """Serve the main HTML page."""
     return FileResponse("static/index.html")
+
+# In-memory user storage (in production, use a real database)
+users_db = {}
+sessions_db = {}
+
+import hashlib
+import secrets
+
+def hash_password(password: str) -> str:
+    """Hash a password using SHA-256."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def generate_token() -> str:
+    """Generate a secure random token."""
+    return secrets.token_urlsafe(32)
+
+@app.post("/api/auth/signup")
+async def signup(request: AuthSignUpRequest):
+    """User signup endpoint."""
+    try:
+        # Check if user already exists
+        if request.email in users_db:
+            return {
+                "status": "error",
+                "message": "Email already registered"
+            }
+        
+        # Create new user
+        users_db[request.email] = {
+            "name": request.name,
+            "email": request.email,
+            "password": hash_password(request.password),
+            "created_at": datetime.now().isoformat()
+        }
+        
+        # Generate auth token
+        token = generate_token()
+        sessions_db[token] = {
+            "email": request.email,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "status": "success",
+            "user": {
+                "name": request.name,
+                "email": request.email
+            },
+            "token": token
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/signin")
+async def signin(request: AuthSignInRequest):
+    """User signin endpoint."""
+    try:
+        # Check if user exists
+        if request.email not in users_db:
+            return {
+                "status": "error",
+                "message": "Invalid email or password"
+            }
+        
+        user = users_db[request.email]
+        
+        # Verify password
+        if user["password"] != hash_password(request.password):
+            return {
+                "status": "error",
+                "message": "Invalid email or password"
+            }
+        
+        # Generate auth token
+        token = generate_token()
+        sessions_db[token] = {
+            "email": request.email,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        return {
+            "status": "success",
+            "user": {
+                "name": user["name"],
+                "email": user["email"]
+            },
+            "token": token
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/logout")
+async def logout(token: str):
+    """User logout endpoint."""
+    try:
+        if token in sessions_db:
+            del sessions_db[token]
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/plan", response_model=TravelResponse)
 async def plan_trip(query: TravelQuery):
