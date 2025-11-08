@@ -2,6 +2,101 @@ let currentPage = 'home';
 let selectedFlight = null;
 let selectedHotel = null;
 let bookingTripDetails = null;
+let toastCounter = 0;
+
+// ========== TOAST NOTIFICATION SYSTEM (XSS-Safe) ==========
+function showToast(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toastId = `toast-${toastCounter++}`;
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    const titles = {
+        success: 'Success',
+        error: 'Error',
+        warning: 'Warning',
+        info: 'Info'
+    };
+    
+    // Create toast element safely using DOM methods
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.id = toastId;
+    
+    // Create icon element
+    const iconEl = document.createElement('div');
+    iconEl.className = 'toast-icon';
+    iconEl.textContent = icons[type];
+    
+    // Create content container
+    const contentEl = document.createElement('div');
+    contentEl.className = 'toast-content';
+    
+    // Create title element
+    const titleEl = document.createElement('div');
+    titleEl.className = 'toast-title';
+    titleEl.textContent = titles[type];
+    
+    // Create message element (safe from XSS)
+    const messageEl = document.createElement('div');
+    messageEl.className = 'toast-message';
+    messageEl.textContent = message; // textContent prevents XSS
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = () => closeToast(toastId);
+    
+    // Assemble the toast
+    contentEl.appendChild(titleEl);
+    contentEl.appendChild(messageEl);
+    toast.appendChild(iconEl);
+    toast.appendChild(contentEl);
+    toast.appendChild(closeBtn);
+    
+    container.appendChild(toast);
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            closeToast(toastId);
+        }, duration);
+    }
+    
+    return toastId;
+}
+
+function closeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (!toast) return;
+    
+    toast.classList.add('toast-hiding');
+    setTimeout(() => {
+        toast.remove();
+    }, 300);
+}
+
+function showSuccessToast(message, duration = 4000) {
+    return showToast(message, 'success', duration);
+}
+
+function showErrorToast(message, duration = 6000) {
+    return showToast(message, 'error', duration);
+}
+
+function showWarningToast(message, duration = 5000) {
+    return showToast(message, 'warning', duration);
+}
+
+function showInfoToast(message, duration = 4000) {
+    return showToast(message, 'info', duration);
+}
 
 // ========== THEME MANAGEMENT ==========
 function initTheme() {
@@ -2077,11 +2172,11 @@ async function handleSignIn(event) {
                 navigateTo('home');
             }, 1000);
         } else {
-            alert(data.message || 'Sign in failed. Please check your credentials.');
+            showErrorToast(data.message || 'Sign in failed. Please check your credentials.');
         }
     } catch (error) {
         console.error('Sign in error:', error);
-        alert('An error occurred during sign in. Please try again.');
+        showErrorToast('An error occurred during sign in. Please try again.');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
@@ -2101,19 +2196,19 @@ async function handleSignUp(event) {
     
     // Validate passwords match
     if (password !== confirmPassword) {
-        alert('Passwords do not match!');
+        showErrorToast('Passwords do not match!');
         return;
     }
     
     // Validate password strength
     if (password.length < 8) {
-        alert('Password must be at least 8 characters long!');
+        showErrorToast('Password must be at least 8 characters long!');
         return;
     }
     
     // Validate terms agreement
     if (!termsAgree) {
-        alert('Please agree to the Terms of Service and Privacy Policy!');
+        showWarningToast('Please agree to the Terms of Service and Privacy Policy!');
         return;
     }
     
@@ -2151,11 +2246,11 @@ async function handleSignUp(event) {
                 navigateTo('home');
             }, 1000);
         } else {
-            alert(data.message || 'Sign up failed. Please try again.');
+            showErrorToast(data.message || 'Sign up failed. Please try again.');
         }
     } catch (error) {
         console.error('Sign up error:', error);
-        alert('An error occurred during sign up. Please try again.');
+        showErrorToast('An error occurred during sign up. Please try again.');
     } finally {
         // Reset button state
         submitBtn.disabled = false;
