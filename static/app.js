@@ -446,10 +446,60 @@ async function extractAndCreateBooking(aiResponse, userMessage) {
                 // Clear partial details
                 delete window.partialTripDetails;
                 
-                // Show booking option with "Book This Trip" button
-                setTimeout(() => {
-                    const bookingPrompt = `✨ <strong>Trip Plan Complete!</strong>\n\n📍 <strong>Destination:</strong> ${tripDetails.destination}\n✈️ <strong>Origin:</strong> ${tripDetails.origin}\n📅 <strong>Dates:</strong> ${tripDetails.start_date} to ${tripDetails.end_date}\n👥 <strong>Passengers:</strong> ${tripDetails.passengers}\n💰 <strong>Budget:</strong> $${tripDetails.budget.toFixed(2)}\n\n<button class="btn-inline" onclick="openBookingWithDetails()">📋 Book This Trip</button> <button class="btn-inline" style="background: var(--secondary);" onclick="createQuickBooking('${tripDetails.destination}', '${tripDetails.start_date}', '${tripDetails.end_date}', ${tripDetails.passengers}, ${tripDetails.budget})">⚡ Quick Book</button>`;
-                    addMessage('assistant', bookingPrompt);
+                // Calculate trip duration
+                const durationDays = Math.ceil((new Date(tripDetails.end_date) - new Date(tripDetails.start_date)) / (1000 * 60 * 60 * 24)) || 1;
+                const tripName = `Trip to ${tripDetails.destination}`;
+                
+                // Automatically save trip to My Trips and trigger booking
+                setTimeout(async () => {
+                    const summaryPrompt = `✨ <strong>Trip Plan Complete!</strong>\n\n📍 <strong>Destination:</strong> ${tripDetails.destination}\n✈️ <strong>Origin:</strong> ${tripDetails.origin}\n📅 <strong>Dates:</strong> ${tripDetails.start_date} to ${tripDetails.end_date}\n👥 <strong>Passengers:</strong> ${tripDetails.passengers}\n💰 <strong>Budget:</strong> $${tripDetails.budget.toFixed(2)}\n\n🔄 Saving to My Trips and opening booking...`;
+                    addMessage('assistant', summaryPrompt);
+                    
+                    try {
+                        // Save trip as itinerary
+                        const itineraryResponse = await fetch('/api/itineraries', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                trip_name: tripName,
+                                destination: tripDetails.destination,
+                                start_date: tripDetails.start_date,
+                                end_date: tripDetails.end_date,
+                                duration_days: durationDays,
+                                budget: tripDetails.budget,
+                                description: `Trip from ${tripDetails.origin} to ${tripDetails.destination} for ${tripDetails.passengers} passenger(s)`,
+                                itinerary_data: {
+                                    origin: tripDetails.origin,
+                                    passengers: tripDetails.passengers,
+                                    ai_generated: true
+                                }
+                            })
+                        });
+                        
+                        const itineraryData = await itineraryResponse.json();
+                        
+                        if (itineraryData.status === 'success') {
+                            showToast('✅ Trip saved to My Trips!', 'success');
+                            
+                            // Automatically open booking modal
+                            setTimeout(() => {
+                                openBookingWithDetails();
+                            }, 500);
+                        } else {
+                            showToast('⚠️ Trip details ready, but could not auto-save. You can still book!', 'warning');
+                            // Still open booking even if save failed
+                            setTimeout(() => {
+                                openBookingWithDetails();
+                            }, 500);
+                        }
+                    } catch (error) {
+                        console.error('Error auto-saving trip:', error);
+                        showToast('⚠️ Trip details ready, but could not auto-save. Opening booking...', 'warning');
+                        // Still open booking even if save failed
+                        setTimeout(() => {
+                            openBookingWithDetails();
+                        }, 500);
+                    }
                 }, 800);
                 return;
             }
@@ -519,10 +569,60 @@ async function extractAndCreateBooking(aiResponse, userMessage) {
             budget: budget
         };
         
-        // Show booking option with "Book This Trip" button
-        setTimeout(() => {
-            const bookingPrompt = `✨ <strong>Trip Plan Ready!</strong>\n\n📍 <strong>Destination:</strong> ${destination}\n✈️ <strong>Origin:</strong> ${origin}\n📅 <strong>Dates:</strong> ${startDate} to ${endDate}\n👥 <strong>Passengers:</strong> ${passengers}\n💰 <strong>Budget:</strong> $${budget.toFixed(2)}\n\n<button class="btn-inline" onclick="openBookingWithDetails()">📋 Book This Trip</button> <button class="btn-inline" style="background: var(--secondary);" onclick="createQuickBooking('${destination}', '${startDate}', '${endDate}', ${passengers}, ${budget})">⚡ Quick Book</button>`;
-            addMessage('assistant', bookingPrompt);
+        // Calculate trip duration
+        const durationDays = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) || 1;
+        const tripName = `Trip to ${destination}`;
+        
+        // Automatically save trip to My Trips and trigger booking
+        setTimeout(async () => {
+            const summaryPrompt = `✨ <strong>Trip Plan Complete!</strong>\n\n📍 <strong>Destination:</strong> ${destination}\n✈️ <strong>Origin:</strong> ${origin}\n📅 <strong>Dates:</strong> ${startDate} to ${endDate}\n👥 <strong>Passengers:</strong> ${passengers}\n💰 <strong>Budget:</strong> $${budget.toFixed(2)}\n\n🔄 Saving to My Trips and opening booking...`;
+            addMessage('assistant', summaryPrompt);
+            
+            try {
+                // Save trip as itinerary
+                const itineraryResponse = await fetch('/api/itineraries', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        trip_name: tripName,
+                        destination: destination,
+                        start_date: startDate,
+                        end_date: endDate,
+                        duration_days: durationDays,
+                        budget: budget,
+                        description: `Trip from ${origin} to ${destination} for ${passengers} passenger(s)`,
+                        itinerary_data: {
+                            origin: origin,
+                            passengers: passengers,
+                            ai_generated: true
+                        }
+                    })
+                });
+                
+                const itineraryData = await itineraryResponse.json();
+                
+                if (itineraryData.status === 'success') {
+                    showToast('✅ Trip saved to My Trips!', 'success');
+                    
+                    // Automatically open booking modal
+                    setTimeout(() => {
+                        openBookingWithDetails();
+                    }, 500);
+                } else {
+                    showToast('⚠️ Trip details ready, but could not auto-save. You can still book!', 'warning');
+                    // Still open booking even if save failed
+                    setTimeout(() => {
+                        openBookingWithDetails();
+                    }, 500);
+                }
+            } catch (error) {
+                console.error('Error auto-saving trip:', error);
+                showToast('⚠️ Trip details ready, but could not auto-save. Opening booking...', 'warning');
+                // Still open booking even if save failed
+                setTimeout(() => {
+                    openBookingWithDetails();
+                }, 500);
+            }
         }, 1000);
     } catch (error) {
         console.error('Error extracting booking details:', error);
