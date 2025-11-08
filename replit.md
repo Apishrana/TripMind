@@ -4,13 +4,25 @@
 
 An autonomous AI-powered travel planning application that processes natural language queries to create complete travel itineraries. The system uses LangGraph's ReAct (Reasoning + Acting) agent framework to orchestrate multiple specialized tools, enabling the AI to autonomously chain actions like searching flights, finding hotels, checking weather, and generating day-by-day itineraries. Built with FastAPI for the backend and vanilla JavaScript for the frontend, it provides a simple yet powerful interface for intelligent travel planning.
 
-**NEW: Complete Booking System** - Now includes secure Stripe payment integration, allowing users to book and pay for trips directly through the platform with full booking management and payment confirmation.
+**NEW: Complete Authentication System** - Beautiful welcome page with sign in/sign up functionality, secure bcrypt password hashing, and database-backed user sessions. The system features stunning animations, glassmorphic effects, and seamless navigation flow.
+
+**PLUS: Complete Booking System** - Secure Stripe payment integration, allowing users to book and pay for trips directly through the platform with full booking management and payment confirmation.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (November 8, 2025)
+
+### Complete Authentication System (Latest)
+- **Welcome/Landing Page**: Stunning animated entry point with floating gradient orbs, glassmorphic feature cards, and smooth transitions
+- **Sign In/Sign Up Pages**: Beautiful split-screen design with animated visuals, form validation, and social login placeholders
+- **Secure Password Hashing**: Bcrypt implementation via passlib for production-grade security
+- **Database-Backed Sessions**: User accounts and sessions persist in SQLAlchemy database (SQLite/PostgreSQL)
+- **Session Management**: Tokens stored in localStorage/sessionStorage with proper remember-me functionality
+- **Dynamic Navigation**: Navbar automatically hides on auth pages, shows on main app pages
+- **Dark Mode Support**: Full theme adaptation across all authentication pages
+- **Mobile Responsive**: Optimized layouts for all screen sizes with adaptive grid system
 
 ### Major UI Enhancements
 - **Multi-page Design**: Transformed single-page app into modern multi-page experience (Home, Plan Trip, My Trips, Preferences)
@@ -25,7 +37,7 @@ Preferred communication style: Simple, everyday language.
 - **Smooth Animations**: Message slide-ins, typing indicators, button hovers, welcome states
 - **Dark Mode Compatible**: Full theme adaptation with proper contrast and colors
 
-### Booking System Enhancements (Latest)
+### Booking System Enhancements
 - **Stripe Payment Integration**: Complete end-to-end payment flow with secure Stripe Checkout
 - **Email Validation**: Required email field with client-side validation and error messages
 - **Loading States**: Visual feedback during booking process with spinner and disabled buttons
@@ -160,9 +172,16 @@ Preferred communication style: Simple, everyday language.
 
 **Rationale**: Mock data allows development and testing without API costs or rate limits. The tool interface is designed to easily swap mock implementations for real API integrations.
 
-### Database (Future)
-**Current**: In-memory dictionaries for user preferences
-**Recommended**: PostgreSQL or MongoDB for production
-- User preference persistence
+### Database
+**Current**: SQLite (development) with PostgreSQL support for production
+**Models**:
+- **User**: Stores user accounts with bcrypt-hashed passwords
+- **Session**: Manages authentication tokens for logged-in users
+- **Itinerary**: Saved trip plans and AI-generated itineraries
+- **Booking**: Stripe-integrated bookings with payment status tracking
+- **CalendarEvent**: User's calendar events with reminders and trip linkage
+
+**Future Enhancements**:
+- User preference persistence (currently in-memory)
 - Conversation history archival
-- Trip plan storage
+- Multi-user trip collaboration
