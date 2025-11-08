@@ -2168,6 +2168,39 @@ function logout() {
     navigateTo('welcome');
 }
 
+// ========== FEATURE EXPLANATIONS ==========
+function showFeatureExplanation(feature) {
+    const tooltip = document.getElementById('feature-tooltip');
+    const title = document.getElementById('tooltip-title');
+    const description = document.getElementById('tooltip-description');
+    
+    const features = {
+        'ai': {
+            title: '🤖 AI-Powered Planning',
+            description: 'Our advanced AI assistant analyzes your preferences, budget, and travel dates to create personalized itineraries. Simply chat with our AI and it will search flights, hotels, activities, and create a complete day-by-day travel plan tailored just for you.'
+        },
+        'booking': {
+            title: '✈️ Smart Booking',
+            description: 'Seamlessly book your entire trip with secure Stripe payment integration. Choose from AI-recommended flights and hotels, or manually select your preferences. Track all your bookings in one place with real-time status updates and payment management.'
+        },
+        'budget': {
+            title: '💰 Budget Optimization',
+            description: 'Get the best value for your money with intelligent budget analysis. Our AI compares flight and hotel prices, suggests cost-effective alternatives, and provides detailed breakdowns of all expenses to help you stay within budget without compromising on quality.'
+        }
+    };
+    
+    const featureData = features[feature];
+    title.textContent = featureData.title;
+    description.textContent = featureData.description;
+    
+    tooltip.classList.add('active');
+}
+
+function hideFeatureExplanation() {
+    const tooltip = document.getElementById('feature-tooltip');
+    tooltip.classList.remove('active');
+}
+
 function checkAuth() {
     const user = localStorage.getItem('user');
     const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');

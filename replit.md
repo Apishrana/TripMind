@@ -64,6 +64,12 @@ Preferred communication style: Simple, everyday language.
 - **Responsive Design**: Modal adapts to all screen sizes with smooth animations
 - **Visual Feedback**: Hover effects on trip cards, animated gradient header, and status badges
 
+### Interactive Feature Explanations (Latest)
+- **Clickable Feature Buttons**: Three feature buttons on welcome page (AI-Powered Planning, Smart Booking, Budget Optimization)
+- **Detailed Explanations**: Click any feature to see a beautiful modal with 2-3 line explanation of that feature
+- **Professional Modal Design**: Gradient background, smooth animations, backdrop blur effect
+- **Easy Dismissal**: Click close button or outside modal to dismiss
+
 ## System Architecture
 
 ### Application Architecture

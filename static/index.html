@@ -44,17 +44,26 @@
                 <p class="welcome-tagline">Your Intelligent Travel Companion</p>
                 
                 <div class="welcome-features-mini">
-                    <div class="mini-feature">
+                    <div class="mini-feature" onclick="showFeatureExplanation('ai')">
                         <span class="mini-icon">🤖</span>
                         <span>AI-Powered Planning</span>
                     </div>
-                    <div class="mini-feature">
+                    <div class="mini-feature" onclick="showFeatureExplanation('booking')">
                         <span class="mini-icon">✈️</span>
                         <span>Smart Booking</span>
                     </div>
-                    <div class="mini-feature">
+                    <div class="mini-feature" onclick="showFeatureExplanation('budget')">
                         <span class="mini-icon">💰</span>
                         <span>Budget Optimization</span>
+                    </div>
+                </div>
+                
+                <!-- Feature Explanation Tooltip -->
+                <div id="feature-tooltip" class="feature-tooltip">
+                    <div class="tooltip-content">
+                        <button class="tooltip-close" onclick="hideFeatureExplanation()">×</button>
+                        <h3 id="tooltip-title"></h3>
+                        <p id="tooltip-description"></p>
                     </div>
                 </div>
                 
