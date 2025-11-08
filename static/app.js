@@ -1402,7 +1402,7 @@ async function loadMyTrips() {
                     : '<span class="badge badge-primary">Pending</span>';
                 
                 html += `
-                    <div class="trip-card">
+                    <div class="trip-card" onclick="handleTripClick('${booking.id}', '${booking.payment_status}')" style="cursor: pointer; transition: all 0.3s ease;">
                         <div class="trip-image">✈️</div>
                         <div class="trip-content">
                             <h3 class="trip-title">${booking.trip_name}</h3>
@@ -1416,9 +1416,10 @@ async function loadMyTrips() {
                                 <small style="color: var(--gray);">Booking ID: ${booking.id}</small>
                             </div>
                             <div style="margin-top: 0.5rem;">
-                                <button class="btn-small btn-view" onclick="viewBookingDetails('${booking.id}')" style="margin-right: 0.5rem;">📋 View Details</button>
+                                <button class="btn-small btn-view" onclick="event.stopPropagation(); viewBookingDetailsModal('${booking.id}')" style="margin-right: 0.5rem;">📋 View Details</button>
                                 ${booking.status !== 'cancelled' && booking.payment_status !== 'paid' ? 
-                                    `<button class="btn-small btn-delete" onclick="cancelBooking('${booking.id}')">❌ Cancel</button>` : 
+                                    `<button class="btn-small btn-primary" onclick="event.stopPropagation(); proceedToPayment('${booking.id}', ${booking.total_price})">💳 Complete Payment</button>
+                                    <button class="btn-small btn-delete" onclick="event.stopPropagation(); cancelBooking('${booking.id}')" style="margin-left: 0.5rem;">❌ Cancel</button>` : 
                                     ''}
                             </div>
                         </div>
@@ -1494,37 +1495,170 @@ function checkPaymentStatus() {
     }
 }
 
-async function viewBookingDetails(bookingId) {
+// Handle trip card click
+function handleTripClick(bookingId, paymentStatus) {
+    if (paymentStatus === 'paid') {
+        // Show full booking details in modal
+        viewBookingDetailsModal(bookingId);
+    } else {
+        // Show booking details and offer to complete payment
+        viewBookingDetailsModal(bookingId);
+    }
+}
+
+// View booking details in a beautiful modal
+async function viewBookingDetailsModal(bookingId) {
     try {
         const response = await fetch(`/api/bookings/${bookingId}`);
         const data = await response.json();
         
         if (data.status === 'success') {
             const booking = data.booking;
-            const details = `
-Booking Details:
-
-Booking ID: ${booking.booking_id}
-Trip: ${booking.trip_name}
-Destination: ${booking.destination}
-Dates: ${booking.start_date} to ${booking.end_date}
-Passengers: ${booking.passengers}
-Base Price: $${booking.base_price?.toFixed(2) || '0.00'}
-Total Price: $${booking.total_price?.toFixed(2) || '0.00'}
-Status: ${booking.status}
-Payment Status: ${booking.payment_status}
-${booking.email ? `Email: ${booking.email}` : ''}
-${booking.special_requests ? `Special Requests: ${booking.special_requests}` : ''}
-Created: ${booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A'}
-${booking.confirmed_at ? `Confirmed: ${new Date(booking.confirmed_at).toLocaleString()}` : ''}
-${booking.cancelled_at ? `Cancelled: ${new Date(booking.cancelled_at).toLocaleString()}` : ''}
-            `.trim();
             
-            alert(details);
+            const statusBadge = booking.status === 'confirmed' 
+                ? '<span class="badge badge-success">✓ Confirmed</span>'
+                : booking.status === 'cancelled'
+                ? '<span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">Cancelled</span>'
+                : '<span class="badge badge-primary">Pending</span>';
+            
+            const paymentBadge = booking.payment_status === 'paid' 
+                ? '<span class="badge badge-success">💳 Paid</span>' 
+                : '<span class="badge badge-warning">💳 Unpaid</span>';
+            
+            const modalHTML = `
+                <div class="modal-backdrop" onclick="closeBookingModal()">
+                    <div class="modal-content booking-details-modal" onclick="event.stopPropagation()">
+                        <div class="modal-header">
+                            <h2>✈️ ${booking.trip_name}</h2>
+                            <button class="close-btn" onclick="closeBookingModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="booking-status-badges">
+                                ${statusBadge}
+                                ${paymentBadge}
+                            </div>
+                            
+                            <div class="booking-detail-section">
+                                <h3>📍 Trip Information</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">Destination:</span>
+                                    <span class="detail-value">${booking.destination}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Travel Dates:</span>
+                                    <span class="detail-value">${booking.start_date} to ${booking.end_date}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Passengers:</span>
+                                    <span class="detail-value">${booking.passengers} person(s)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-detail-section">
+                                <h3>💰 Pricing Details</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">Base Price:</span>
+                                    <span class="detail-value">$${(booking.base_price || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Total Amount:</span>
+                                    <span class="detail-value" style="font-weight: 700; font-size: 1.2em; color: var(--primary);">$${(booking.total_price || 0).toFixed(2)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="booking-detail-section">
+                                <h3>📋 Booking Information</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">Booking ID:</span>
+                                    <span class="detail-value"><code>${booking.booking_id}</code></span>
+                                </div>
+                                ${booking.email ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Email:</span>
+                                    <span class="detail-value">${booking.email}</span>
+                                </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <span class="detail-label">Created:</span>
+                                    <span class="detail-value">${booking.created_at ? new Date(booking.created_at).toLocaleString() : 'N/A'}</span>
+                                </div>
+                                ${booking.confirmed_at ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Confirmed:</span>
+                                    <span class="detail-value">${new Date(booking.confirmed_at).toLocaleString()}</span>
+                                </div>
+                                ` : ''}
+                                ${booking.cancelled_at ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Cancelled:</span>
+                                    <span class="detail-value">${new Date(booking.cancelled_at).toLocaleString()}</span>
+                                </div>
+                                ` : ''}
+                                ${booking.special_requests ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">Special Requests:</span>
+                                    <span class="detail-value">${booking.special_requests}</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            
+                            <div class="modal-actions">
+                                ${booking.payment_status !== 'paid' && booking.status !== 'cancelled' ? 
+                                    `<button class="btn btn-primary" onclick="proceedToPayment('${booking.id}', ${booking.total_price})">💳 Complete Payment</button>` 
+                                    : ''}
+                                ${booking.status !== 'cancelled' && booking.payment_status !== 'paid' ? 
+                                    `<button class="btn btn-secondary" onclick="cancelBooking('${booking.id}'); closeBookingModal();">❌ Cancel Booking</button>` 
+                                    : ''}
+                                <button class="btn btn-secondary" onclick="closeBookingModal()">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
         }
     } catch (error) {
         alert('Error loading booking details: ' + error.message);
     }
+}
+
+function closeBookingModal() {
+    const modal = document.querySelector('.modal-backdrop');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Proceed to payment for unpaid bookings
+async function proceedToPayment(bookingId, totalPrice) {
+    try {
+        const response = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                booking_id: bookingId,
+                amount: totalPrice
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            alert('Error creating payment session. Please try again.');
+        }
+    } catch (error) {
+        alert('Error processing payment: ' + error.message);
+    }
+}
+
+async function viewBookingDetails(bookingId) {
+    // Redirect to the modal version
+    viewBookingDetailsModal(bookingId);
 }
 
 async function cancelBooking(bookingId) {
