@@ -9,6 +9,13 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Improved Booking Flow Error Handling**: Enhanced error reporting and debugging for booking functionality
+  - Replaced browser alerts with modern toast notifications for better UX
+  - Added comprehensive console logging to track booking flow issues
+  - Implemented proper HTTP status checking before parsing responses
+  - Log trip details before sending to API for easier debugging
+  - Check both data.message and data.error fields for complete error information
+  - Better error messages help identify root cause of booking failures
 - **Plan Trip Page Scrolling Enabled**: Fixed content accessibility on Plan Trip page
   - Changed overflow from hidden to auto on main container
   - Vertical scrolling now works properly to access all content
