@@ -12,6 +12,7 @@ Preferred communication style: Simple, everyday language.
 - **Plan Trip Page Improvements**: Enhanced layout and user experience
   - Optimized travel illustration size to 86% width (max 520px) for better visual presence while preventing text overflow
   - Centered illustration with proper margins for better visual balance
+  - Fixed graphics side positioning to prevent image shifting when selecting suggestions
   - Added "✨ Others" suggestion chip that focuses input without preset text
   - Users can now easily choose custom trips or use suggested templates
 - **Header Spacing Optimization**: Refined navbar spacing for better visual balance
