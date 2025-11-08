@@ -10,7 +10,8 @@
     margin: 0;
     padding: 0;
     padding-top: 80px;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     background: #f8fafc;
 }
 
