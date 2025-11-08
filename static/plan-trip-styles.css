@@ -458,40 +458,52 @@
 }
 
 /* Dark Mode Support */
-body.dark-mode .chat-box {
+[data-theme="dark"] .chat-box {
     background: rgba(30, 30, 40, 0.9);
     border-color: rgba(99, 102, 241, 0.2);
 }
 
-body.dark-mode .chat-header {
+[data-theme="dark"] .chat-header {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.12) 50%, rgba(236, 72, 153, 0.12) 100%);
     border-bottom-color: rgba(99, 102, 241, 0.2);
 }
 
-body.dark-mode .chat-messages {
+[data-theme="dark"] .chat-messages {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
 }
 
-body.dark-mode .message.ai .message-content {
+[data-theme="dark"] .message.ai .message-content {
     background: rgba(40, 40, 50, 0.95);
     color: var(--light);
     border-color: rgba(99, 102, 241, 0.2);
 }
 
-body.dark-mode .chat-input {
+[data-theme="dark"] .chat-input {
     background: rgba(40, 40, 50, 0.95);
     border-color: rgba(99, 102, 241, 0.3);
     color: var(--light);
 }
 
-body.dark-mode .chat-input-area {
+[data-theme="dark"] .chat-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] .chat-input-area {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
     border-top-color: rgba(99, 102, 241, 0.2);
 }
 
-body.dark-mode .typing-indicator {
+[data-theme="dark"] .typing-indicator {
     background: rgba(40, 40, 50, 0.95);
     border-color: rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .welcome-message h2 {
+    color: var(--light);
+}
+
+[data-theme="dark"] .welcome-message p {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Animations */
