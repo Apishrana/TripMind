@@ -1072,29 +1072,7 @@ function closeEventModal() {
     currentEditingEvent = null;
 }
 
-// Initialize reminder checkbox
-document.addEventListener('DOMContentLoaded', () => {
-    const reminderCheckbox = document.getElementById('event-reminder');
-    if (reminderCheckbox) {
-        reminderCheckbox.addEventListener('change', function() {
-            document.getElementById('reminder-options').style.display = this.checked ? 'block' : 'none';
-        });
-    }
-    
-    // Sync color picker with text input
-    const colorPicker = document.getElementById('event-color');
-    const colorText = document.getElementById('event-color-text');
-    if (colorPicker && colorText) {
-        colorPicker.addEventListener('input', function() {
-            colorText.value = this.value;
-        });
-        colorText.addEventListener('input', function() {
-            if (/^#[0-9A-F]{6}$/i.test(this.value)) {
-                colorPicker.value = this.value;
-            }
-        });
-    }
-});
+// Moved to main DOMContentLoaded listener below
 
 async function viewItinerary(id) {
     try {
@@ -1597,7 +1575,30 @@ async function proceedToBooking() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize theme FIRST before any visual elements
     initTheme();
+    
+    // Initialize reminder checkbox
+    const reminderCheckbox = document.getElementById('event-reminder');
+    if (reminderCheckbox) {
+        reminderCheckbox.addEventListener('change', function() {
+            document.getElementById('reminder-options').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    // Sync color picker with text input
+    const colorPicker = document.getElementById('event-color');
+    const colorText = document.getElementById('event-color-text');
+    if (colorPicker && colorText) {
+        colorPicker.addEventListener('input', function() {
+            colorText.value = this.value;
+        });
+        colorText.addEventListener('input', function() {
+            if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                colorPicker.value = this.value;
+            }
+        });
+    }
     
     // Initialize price summary footer - hidden by default
     const footer = document.getElementById("price-summary-footer");
