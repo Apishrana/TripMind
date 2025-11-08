@@ -9,6 +9,12 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Plan Trip Page Scrolling Enabled**: Fixed content accessibility on Plan Trip page
+  - Changed overflow from hidden to auto on main container
+  - Vertical scrolling now works properly to access all content
+  - Prevents horizontal scrolling while allowing vertical navigation
+  - Maintains fixed layout and split-screen design
+  - Chat messages and graphics remain properly positioned
 - **Expanded Accommodation Options**: Enhanced booking page with comprehensive hotel variety
   - Increased from 3 to 10 hotel options across all price ranges
   - Luxury tier: Grand resorts, beach resorts, boutique hotels ($125-$180/night)
