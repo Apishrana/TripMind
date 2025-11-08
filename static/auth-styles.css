@@ -720,33 +720,26 @@
 /* Feature Tooltip */
 .feature-tooltip {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.8);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 10000;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .feature-tooltip.active {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
     pointer-events: auto;
-}
-
-.feature-tooltip::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
-    z-index: -1;
 }
 
 .tooltip-content {
@@ -759,6 +752,12 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     position: relative;
     animation: tooltipSlideUp 0.3s ease-out;
+    transform: scale(0.8);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-tooltip.active .tooltip-content {
+    transform: scale(1);
 }
 
 @keyframes tooltipSlideUp {

@@ -59,8 +59,8 @@
                 </div>
                 
                 <!-- Feature Explanation Tooltip -->
-                <div id="feature-tooltip" class="feature-tooltip">
-                    <div class="tooltip-content">
+                <div id="feature-tooltip" class="feature-tooltip" onclick="hideFeatureExplanation()">
+                    <div class="tooltip-content" onclick="event.stopPropagation()">
                         <button class="tooltip-close" onclick="hideFeatureExplanation()">×</button>
                         <h3 id="tooltip-title"></h3>
                         <p id="tooltip-description"></p>
