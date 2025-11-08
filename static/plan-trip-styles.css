@@ -282,7 +282,7 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 3rem 1.5rem 2rem;
+    padding: calc(3rem - 5px) 1.5rem 2rem;
     background: transparent;
     overflow: hidden;
 }
