@@ -28,3 +28,4 @@ sqlalchemy
 stripe
 uvicorn
 passlib
+langchain-openai
