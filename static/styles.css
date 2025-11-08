@@ -196,10 +196,11 @@ body::before {
 .nav-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0.75rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1.5rem;
 }
 
 .nav-logo {
@@ -240,7 +241,8 @@ body::before {
 
 .nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
+    align-items: center;
     list-style: none;
 }
 
@@ -2469,6 +2471,7 @@ html {
 .profile-menu-container {
     position: relative;
     cursor: default !important;
+    z-index: 1000;
 }
 
 .profile-trigger {
@@ -2510,7 +2513,16 @@ html {
     border: 1px solid var(--border-color);
     overflow: hidden;
     z-index: 1001;
-    animation: dropdownFade 0.3s ease-out;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    pointer-events: none;
+}
+
+.profile-dropdown.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 @keyframes dropdownFade {
