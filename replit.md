@@ -9,6 +9,16 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Cursor Hiding on Button Hover**: Implemented cursor: none on all interactive element hover states
+  - All buttons hide cursor on hover (primary, secondary, inline, booking, view, delete, submit, social)
+  - Navigation elements hide cursor (logo, links, booking button, theme toggle)
+  - Profile menu elements hide cursor (trigger and dropdown items)
+  - Plan Trip page chips and buttons hide cursor on hover
+  - Calendar controls and events hide cursor (with !important overrides for FullCalendar)
+  - Auth page buttons and mini-features hide cursor on hover
+  - Interactive cards hide cursor (feature cards, trip cards)
+  - Modal close buttons hide cursor in both light and dark modes
+  - Consistent implementation across all CSS files
 - **Comprehensive Dark Mode Fix**: Resolved dark theme issues across all pages and modals
   - Standardized all dark mode selectors to `[data-theme="dark"]` (removed mixed `body.dark-mode` usage)
   - Fixed Home page: Hero section, features, trip cards, form inputs, buttons, modals
