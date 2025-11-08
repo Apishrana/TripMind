@@ -642,21 +642,30 @@ function openBookingWithDetails() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ trip_details: window.lastTripDetails })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Booking options response:', data);
             if (data.status === "success") {
                 bookingTripDetails = data.trip_details;
                 navigateTo("booking");
                 setTimeout(() => loadBookingOptions(data), 300);
             } else {
-                alert("Unable to load booking options: " + (data.error || "Unknown error"));
+                const errorMsg = data.message || data.error || "Unknown error";
+                console.error('Booking options error:', errorMsg);
+                showToast(`Unable to load booking options: ${errorMsg}`, 'error');
             }
         })
         .catch(error => {
-            alert("Error loading booking options: " + error.message);
+            console.error('Error loading booking options:', error);
+            showToast(`Error loading booking options: ${error.message}`, 'error');
         });
     } else {
-        alert("No trip details found. Please plan a trip first!");
+        showToast("No trip details found. Please plan a trip first!", 'warning');
     }
 }
 
