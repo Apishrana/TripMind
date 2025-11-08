@@ -9,6 +9,14 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Automated Trip Booking Flow**: Streamlined booking experience with automatic trip saving and booking activation
+  - When AI generates a trip plan, it automatically saves to My Trips (as an itinerary in the database)
+  - Booking page opens automatically after trip is saved, no manual button clicking required
+  - Toast notifications provide clear feedback on save success/failure
+  - Graceful error handling ensures booking modal still opens even if auto-save fails
+  - Works for both immediate trip detection and delayed origin completion flows
+  - Trip details include destination, origin, dates, passengers, budget, and duration
+  - All trips are saved to `/api/itineraries` with AI-generated flag for tracking
 - **Enhanced Profile Dropdown Menu**: Redesigned with comprehensive account management options
   - Account Settings - View account information
   - My Trips - Access saved trip plans
