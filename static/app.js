@@ -2165,6 +2165,9 @@ async function handleSignIn(event) {
                 sessionStorage.setItem('auth_token', data.token);
             }
             
+            // Load user profile
+            loadUserProfile();
+            
             // Show success message
             showSuccessMessage('✅ Welcome back! Redirecting to home...');
             
