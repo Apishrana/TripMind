@@ -11,6 +11,7 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (Latest)
 - **Navbar Cleanup**: Simplified navigation bar design
   - Removed emojis from Calendar and Book Now buttons for a cleaner, more professional look
+  - Removed emojis from Start Planning and Set Preferences buttons on home page
   - Kept theme toggle emoji for visual clarity
 - **Plan Trip Page Improvements**: Enhanced layout and user experience
   - Optimized travel illustration size to 86% width (max 520px) for better visual presence while preventing text overflow
