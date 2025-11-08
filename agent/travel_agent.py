@@ -2,16 +2,14 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 
-# Using Google Gemini AI instead of OpenAI
-# The newest Gemini model is "gemini-2.5-flash" or "gemini-2.5-pro"
-# do not change this unless explicitly requested by the user
+# Using Groq API with llama-3.3-70b-versatile model for fast travel planning
 
 # Global user preferences storage (in production would use a database)
 user_preferences_store = {}
@@ -431,12 +429,10 @@ class TravelPlannerAgent:
     """Autonomous AI agent for travel planning with LangChain agent executor."""
     
     def __init__(self):
-        # Use GEMINI_API_KEY environment variable (mapped to google_api_key parameter)
-        gemini_key = os.environ.get("GEMINI_API_KEY")
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            temperature=0.7,
-            google_api_key=gemini_key
+        # Use GROQ_API_KEY environment variable
+        self.llm = ChatGroq(
+            model="llama-3.3-70b-versatile",
+            temperature=0.7
         )
         
         # Chat history for conversation memory
