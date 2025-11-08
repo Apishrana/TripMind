@@ -83,13 +83,7 @@
     width: 120px;
     height: 120px;
     margin: 0 auto 1.5rem;
-    animation: bounce 2s ease-in-out infinite;
     filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
 }
 
 .welcome-title {

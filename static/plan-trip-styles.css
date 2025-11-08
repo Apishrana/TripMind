@@ -98,12 +98,6 @@
     height: 28px;
     display: inline-block;
     vertical-align: middle;
-    animation: iconFloat 3s ease-in-out infinite;
-}
-
-@keyframes iconFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-1px); }
 }
 
 /* Chat Messages Area */

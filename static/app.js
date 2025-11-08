@@ -2040,9 +2040,96 @@ function checkAuth() {
     return user && token;
 }
 
+// ========== CUSTOM CURSOR ==========
+function initCustomCursor() {
+    // Create cursor elements
+    const cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+    
+    const cursorDot = document.createElement('div');
+    cursorDot.className = 'custom-cursor-dot';
+    document.body.appendChild(cursorDot);
+    
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+    let dotX = 0, dotY = 0;
+    
+    // Track mouse movement
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        
+        // Show cursors on first movement
+        cursor.classList.add('active');
+        cursorDot.classList.add('active');
+        
+        // Instant dot positioning
+        dotX = mouseX - 3;
+        dotY = mouseY - 3;
+    });
+    
+    // Smooth cursor animation
+    function animateCursor() {
+        // Smooth follow effect for outer circle
+        cursorX += (mouseX - cursorX - 10) * 0.15;
+        cursorY += (mouseY - cursorY - 10) * 0.15;
+        
+        cursor.style.left = cursorX + 'px';
+        cursor.style.top = cursorY + 'px';
+        cursorDot.style.left = dotX + 'px';
+        cursorDot.style.top = dotY + 'px';
+        
+        requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+    
+    // Click effect
+    document.addEventListener('mousedown', () => {
+        cursor.classList.add('clicked');
+        cursorDot.classList.add('clicked');
+    });
+    
+    document.addEventListener('mouseup', () => {
+        cursor.classList.remove('clicked');
+        cursorDot.classList.remove('clicked');
+    });
+    
+    // Hover effect for interactive elements
+    const interactiveElements = 'a, button, input, textarea, select, .btn, .card, .feature-card, .nav-link, .message-option, .flight-option, .hotel-option';
+    
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.matches(interactiveElements) || e.target.closest(interactiveElements)) {
+            cursor.classList.add('hovering');
+            cursorDot.classList.add('hovering');
+        }
+    });
+    
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.matches(interactiveElements) || e.target.closest(interactiveElements)) {
+            cursor.classList.remove('hovering');
+            cursorDot.classList.remove('hovering');
+        }
+    });
+    
+    // Hide cursor when leaving window
+    document.addEventListener('mouseleave', () => {
+        cursor.classList.remove('active');
+        cursorDot.classList.remove('active');
+    });
+    
+    document.addEventListener('mouseenter', () => {
+        cursor.classList.add('active');
+        cursorDot.classList.add('active');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme FIRST before any visual elements
     initTheme();
+    
+    // Initialize custom cursor
+    initCustomCursor();
     
     // Initialize reminder checkbox
     const reminderCheckbox = document.getElementById('event-reminder');
