@@ -295,13 +295,11 @@ async function sendMessage() {
             
             addMessage('assistant', responseText);
             
-            // Auto-extract and create booking if user wants to book
-            const lowerMessage = message.toLowerCase();
-            if (lowerMessage.includes('book') || lowerMessage.includes('reserve') || lowerMessage.includes('i want to book')) {
-                setTimeout(() => {
-                    extractAndCreateBooking(responseText, message);
-                }, 500);
-            }
+            // Always try to extract trip details from AI response
+            // This ensures booking buttons appear after ANY trip planning, not just when user says "book"
+            setTimeout(() => {
+                extractAndCreateBooking(responseText, message);
+            }, 500);
         } else {
             // Remove typing indicator
             const messagesDiv = document.getElementById('chat-messages');
@@ -334,34 +332,171 @@ async function sendMessage() {
 async function extractAndCreateBooking(aiResponse, userMessage) {
     // Try to extract booking details from AI response
     try {
+        // Check if we're waiting for origin from a previous trip detection
+        if (window.partialTripDetails) {
+            // User is responding with their origin city
+            const originFromUser = userMessage.trim();
+            
+            // Validate it looks like a city name (basic check)
+            if (originFromUser.length > 1 && /^[A-Za-z\s]+$/.test(originFromUser)) {
+                // Complete the trip details with the provided origin
+                window.lastTripDetails = {
+                    ...window.partialTripDetails,
+                    origin: originFromUser
+                };
+                
+                const tripDetails = window.lastTripDetails;
+                
+                // Clear partial details
+                delete window.partialTripDetails;
+                
+                // Show booking option with "Book This Trip" button
+                setTimeout(() => {
+                    const bookingPrompt = `✨ <strong>Trip Plan Complete!</strong>\n\n📍 <strong>Destination:</strong> ${tripDetails.destination}\n✈️ <strong>Origin:</strong> ${tripDetails.origin}\n📅 <strong>Dates:</strong> ${tripDetails.start_date} to ${tripDetails.end_date}\n👥 <strong>Passengers:</strong> ${tripDetails.passengers}\n💰 <strong>Budget:</strong> $${tripDetails.budget.toFixed(2)}\n\n<button class="btn-inline" onclick="openBookingWithDetails()">📋 Book This Trip</button> <button class="btn-inline" style="background: var(--secondary);" onclick="createQuickBooking('${tripDetails.destination}', '${tripDetails.start_date}', '${tripDetails.end_date}', ${tripDetails.passengers}, ${tripDetails.budget})">⚡ Quick Book</button>`;
+                    addMessage('assistant', bookingPrompt);
+                }, 800);
+                return;
+            }
+        }
+        
         // Look for structured data in the response
         const destinationMatch = aiResponse.match(/destination[:\s]+([^\n,]+)/i) || 
                                  userMessage.match(/(?:to|in|visit|going to)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i) ||
                                  aiResponse.match(/(?:trip to|visit|going to)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
+        
+        // Only proceed if we have a clear destination
+        if (!destinationMatch) {
+            return; // No trip details found, silently exit
+        }
+        
         const dateMatch = aiResponse.match(/(\d{4}-\d{2}-\d{2})/g) || userMessage.match(/(\d{4}-\d{2}-\d{2})/g);
         const passengerMatch = aiResponse.match(/(\d+)\s*(?:passenger|person|people|guest)/i) || 
                               userMessage.match(/(\d+)\s*(?:passenger|person|people|guest)/i) ||
                               userMessage.match(/(?:for|with)\s+(\d+)/i);
-        const priceMatch = aiResponse.match(/\$(\d+(?:\.\d{2})?)/g);
+        const budgetMatch = aiResponse.match(/budget[:\s]+\$?(\d+(?:,\d{3})*(?:\.\d{2})?)/i) ||
+                           userMessage.match(/budget[:\s]+\$?(\d+(?:,\d{3})*(?:\.\d{2})?)/i);
+        const originMatch = aiResponse.match(/(?:from|origin|starting from|departing from)[:\s]+([^\n,]+)/i) ||
+                           userMessage.match(/(?:from|starting from)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/i);
         
-        if (destinationMatch) {
-            const destination = destinationMatch[1].trim().replace(/[^\w\s-]/g, '');
-            const startDate = dateMatch && dateMatch.length >= 1 ? dateMatch[0] : new Date().toISOString().split('T')[0];
-            const endDate = dateMatch && dateMatch.length >= 2 ? dateMatch[1] : 
-                           dateMatch && dateMatch.length >= 1 ? dateMatch[0] : 
-                           new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            const passengers = passengerMatch ? parseInt(passengerMatch[1]) : 1;
-            const basePrice = priceMatch && priceMatch.length > 0 ? 
-                            parseFloat(priceMatch[priceMatch.length - 1].replace('$', '')) / passengers : 200.0;
-            
-            // Show booking option
-            setTimeout(() => {
-                const bookingPrompt = `Would you like me to create a booking for:\n\n📍 Destination: ${destination}\n📅 Dates: ${startDate} to ${endDate}\n👥 Passengers: ${passengers}\n💰 Estimated Price: $${(basePrice * passengers).toFixed(2)}\n\n<button class="btn-inline" onclick="createBookingFromChat('${destination}', '${startDate}', '${endDate}', ${passengers}, ${basePrice})">Yes, Create Booking</button>`;
-                addMessage('assistant', bookingPrompt);
-            }, 1000);
+        const destination = destinationMatch[1].trim().replace(/[^\w\s-]/g, '');
+        
+        // Use stored origin from previous trips, or ask user if not found
+        let origin = null;
+        if (originMatch) {
+            origin = originMatch[1].trim().replace(/[^\w\s-]/g, '');
+        } else if (window.lastTripDetails && window.lastTripDetails.origin) {
+            origin = window.lastTripDetails.origin; // Reuse from previous trip
         }
+        
+        const startDate = dateMatch && dateMatch.length >= 1 ? dateMatch[0] : new Date().toISOString().split('T')[0];
+        const endDate = dateMatch && dateMatch.length >= 2 ? dateMatch[1] : 
+                       dateMatch && dateMatch.length >= 1 ? dateMatch[0] : 
+                       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const passengers = passengerMatch ? parseInt(passengerMatch[1]) : 1;
+        const budget = budgetMatch ? parseFloat(budgetMatch[1].replace(/,/g, '')) : 1000.0;
+        
+        // If we don't have an origin, ask the user
+        if (!origin) {
+            setTimeout(() => {
+                const originPrompt = `✨ <strong>Trip to ${destination} detected!</strong>\n\n📅 <strong>Dates:</strong> ${startDate} to ${endDate}\n👥 <strong>Passengers:</strong> ${passengers}\n\n⚠️ <strong>Where are you traveling from?</strong>\n\nPlease reply with your departure city (e.g., "New York", "London", "Tokyo")`;
+                addMessage('assistant', originPrompt);
+                
+                // Store partial details to complete later
+                window.partialTripDetails = {
+                    destination: destination,
+                    start_date: startDate,
+                    end_date: endDate,
+                    passengers: passengers,
+                    budget: budget
+                };
+            }, 800);
+            return;
+        }
+        
+        // Store complete trip details for booking
+        window.lastTripDetails = {
+            destination: destination,
+            origin: origin,
+            start_date: startDate,
+            end_date: endDate,
+            passengers: passengers,
+            budget: budget
+        };
+        
+        // Show booking option with "Book This Trip" button
+        setTimeout(() => {
+            const bookingPrompt = `✨ <strong>Trip Plan Ready!</strong>\n\n📍 <strong>Destination:</strong> ${destination}\n✈️ <strong>Origin:</strong> ${origin}\n📅 <strong>Dates:</strong> ${startDate} to ${endDate}\n👥 <strong>Passengers:</strong> ${passengers}\n💰 <strong>Budget:</strong> $${budget.toFixed(2)}\n\n<button class="btn-inline" onclick="openBookingWithDetails()">📋 Book This Trip</button> <button class="btn-inline" style="background: var(--secondary);" onclick="createQuickBooking('${destination}', '${startDate}', '${endDate}', ${passengers}, ${budget})">⚡ Quick Book</button>`;
+            addMessage('assistant', bookingPrompt);
+        }, 1000);
     } catch (error) {
         console.error('Error extracting booking details:', error);
+    }
+}
+
+function openBookingWithDetails() {
+    // Open booking page with trip details from chat
+    if (window.lastTripDetails) {
+        bookingTripDetails = window.lastTripDetails;
+        selectedFlight = null;
+        selectedHotel = null;
+        
+        // Fetch booking options with trip details
+        fetch("/api/booking-options", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ trip_details: window.lastTripDetails })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                bookingTripDetails = data.trip_details;
+                navigateTo("booking");
+                setTimeout(() => loadBookingOptions(data), 300);
+            } else {
+                alert("Unable to load booking options: " + (data.error || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            alert("Error loading booking options: " + error.message);
+        });
+    } else {
+        alert("No trip details found. Please plan a trip first!");
+    }
+}
+
+async function createQuickBooking(destination, startDate, endDate, passengers, budget) {
+    // Quick booking without selecting flights/hotels
+    try {
+        const tripName = `Trip to ${destination}`;
+        const tripId = `chat-booking-${destination.toLowerCase().replace(/\s+/g, '-')}`;
+        
+        const response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                trip_id: tripId,
+                trip_name: tripName,
+                destination: destination,
+                start_date: startDate,
+                end_date: endDate,
+                total_price: budget,
+                passengers: passengers,
+                flight_details: {},
+                hotel_details: {}
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            addMessage('assistant', `✅ <strong>Quick Booking Created!</strong>\n\nBooking ID: <code>${data.booking_id}</code>\n\nYou can view and manage your booking in "My Trips" or proceed to payment.\n\n<button class="btn-inline" onclick="navigateTo('trips'); setTimeout(() => loadMyTrips(), 500);">View My Trips</button>`);
+        } else {
+            addMessage('assistant', '❌ Error creating booking: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        addMessage('assistant', '❌ Error creating booking: ' + error.message);
     }
 }
 
@@ -1436,6 +1571,13 @@ function showSuccessMessage(message, type = 'success') {
 
 async function openBookingPageFromChat() {
     try {
+        // First check if we have stored trip details from chat
+        if (window.lastTripDetails) {
+            openBookingWithDetails();
+            return;
+        }
+        
+        // Otherwise try to extract from conversation history
         const response = await fetch("/api/booking-options", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1449,10 +1591,38 @@ async function openBookingPageFromChat() {
             navigateTo("booking");
             setTimeout(() => loadBookingOptions(data), 300);
         } else {
-            alert("Unable to extract trip details. Please plan a trip in the chat first!");
+            // Show helpful message
+            const helpMessage = `
+                <div style="text-align: center; padding: 2rem;">
+                    <h3>📋 No Trip Details Found</h3>
+                    <p style="color: var(--gray); margin: 1rem 0;">
+                        To create a booking, please plan a trip first using the AI chat.
+                    </p>
+                    <p style="color: var(--gray); margin: 1rem 0;">
+                        Try saying: <strong>"I want to book a trip to Paris for 2 people from December 1-7"</strong>
+                    </p>
+                    <button class="btn-inline" onclick="navigateTo('plan')" style="margin-top: 1rem;">
+                        🚀 Go to Plan Trip
+                    </button>
+                </div>
+            `;
+            
+            // Show as modal or message
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 10000; max-width: 500px;';
+            modal.innerHTML = helpMessage;
+            
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999;';
+            overlay.onclick = () => { modal.remove(); overlay.remove(); };
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(modal);
+            
+            setTimeout(() => { modal.remove(); overlay.remove(); }, 5000);
         }
     } catch (error) {
-        alert("Error: " + error.message);
+        alert("Error: " + error.message + "\n\nPlease plan a trip in the chat first!");
     }
 }
 
