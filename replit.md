@@ -9,14 +9,35 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
-- **Profile Menu Added**: New profile dropdown in navbar's rightmost corner with complete user information
-  - Shows user avatar with initials
+- **Secure Toast Notification System**: Replaced all browser alerts with modern, animated toast notifications
+  - Four types: success, error, warning, info with color-coded styling
+  - XSS-safe implementation using textContent instead of innerHTML
+  - Auto-dismiss after 5 seconds, clickable to close manually
+  - Stacked vertical display with smooth slide-in animations
+  - Full dark mode support with themed colors
+  - Mobile responsive positioning
+- **Mobile Responsive Improvements**: Comprehensive breakpoints for all screen sizes
+  - Navbar scales appropriately at 1024px, 900px, 768px, and 640px breakpoints
+  - Profile dropdown repositions for optimal mobile viewing
+  - Horizontal scroll support for navigation links on small screens
+  - Toast notifications adjust position and sizing on mobile devices
+- **Profile Menu Added**: Complete profile dropdown in navbar's rightmost corner
+  - User avatar with auto-generated initials
   - Displays user name and email
-  - Quick access menu with Settings, My Trips, and Calendar links
+  - Quick access to Settings, My Trips, and Calendar
   - Logout functionality
-  - Beautiful dropdown with smooth animations
-  - Full dark mode support
-  - Automatically loads user data from localStorage on page load
+  - Smooth animations and full dark mode support
+  - Loads user data from localStorage automatically
+- **My Trips Page Enhanced**: Redesigned trip cards with rich detail display
+  - Location badges showing destination
+  - Trip highlights section with 3 key features per trip
+  - Duration information (e.g., "5 days")
+  - Prominent pricing display
+  - Staggered fade-in animations for visual appeal
+- **Plan Trip Page Cleanup**: Improved readability and fixed layout issues
+  - Removed colorful gradient overlays for cleaner interface
+  - Fixed navbar overlap with proper 80px top padding
+  - Clean, neutral backgrounds for better chat visibility
 
 ## System Architecture
 
