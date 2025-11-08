@@ -298,8 +298,8 @@
 
 /* Travel Illustration */
 .travel-illustration {
-    width: 85%;
-    max-width: 450px;
+    width: 92%;
+    max-width: 520px;
     margin: 0 auto;
     animation: fadeIn 1s ease-out;
 }
