@@ -378,6 +378,97 @@ body::before {
     color: var(--primary);
 }
 
+/* Dark Mode - Hero Section */
+[data-theme="dark"] .hero {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+}
+
+/* Dark Mode - Features Section */
+[data-theme="dark"] .features {
+    background: #0f172a;
+}
+
+[data-theme="dark"] .features::before {
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
+/* Dark Mode - Trip Cards */
+[data-theme="dark"] .trip-content {
+    background: #1e293b;
+    color: var(--dark);
+}
+
+[data-theme="dark"] .trip-title,
+[data-theme="dark"] .feature-title {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .feature-desc,
+[data-theme="dark"] .trip-desc {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .trip-image {
+    background: #334155;
+}
+
+/* Dark Mode - Section Titles */
+[data-theme="dark"] .section-title {
+    color: var(--dark);
+}
+
+/* Dark Mode - Inputs and Form Elements */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+    background: #334155;
+    border-color: #475569;
+    color: var(--dark);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: #64748b;
+}
+
+/* Dark Mode - Calendar Modal */
+[data-theme="dark"] .modal-content {
+    background: #1e293b;
+    color: var(--dark);
+    border-color: #334155;
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .modal-close {
+    color: var(--dark);
+}
+
+[data-theme="dark"] .modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--dark);
+}
+
+/* Dark Mode - Buttons */
+[data-theme="dark"] .btn-secondary {
+    background: #334155;
+    color: var(--dark);
+    border-color: #475569;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background: #475569;
+}
+
 .btn-inline {
     display: inline-block;
     margin: 0.5rem 0.5rem 0.5rem 0;
