@@ -9,12 +9,13 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
-- **Comprehensive Dark Mode Fix**: Resolved dark theme issues across all pages
+- **Comprehensive Dark Mode Fix**: Resolved dark theme issues across all pages and modals
   - Standardized all dark mode selectors to `[data-theme="dark"]` (removed mixed `body.dark-mode` usage)
   - Fixed Home page: Hero section, features, trip cards, form inputs, buttons, modals
   - Fixed Plan Trip page: Headers, welcome state, stats, testimonials, inputs, all text elements
   - Fixed My Trips page: Trip card content, titles, descriptions, images
   - Fixed Calendar page: Edit plan modal, form fields, labels, buttons
+  - Fixed Book Now popup: Booking sections, summary cards, detail sections, form elements, footer notes
   - All text gradients, backgrounds, and borders now properly themed
   - Enhanced accessibility with proper contrast in dark mode
 - **Navbar Cleanup**: Simplified navigation bar design
