@@ -25,10 +25,10 @@ stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 # Initialize the AI agent (only if API key is available)
 agent = None
 try:
-    if os.environ.get('GROQ_API_KEY'):
+    if os.environ.get('OPENROUTER_API_KEY'):
         agent = TravelPlannerAgent()
     else:
-        print("Warning: GROQ_API_KEY not set. AI agent features will be unavailable.")
+        print("Warning: OPENROUTER_API_KEY not set. AI agent features will be unavailable.")
 except Exception as e:
     print(f"Warning: Failed to initialize AI agent: {e}. AI agent features will be unavailable.")
 
