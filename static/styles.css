@@ -221,6 +221,7 @@ body::before {
 .nav-logo:hover {
     transform: scale(1.05);
     filter: brightness(1.1);
+    cursor: none;
 }
 
 .nav-logo::after {
@@ -280,6 +281,7 @@ body::before {
     color: var(--primary);
     background: rgba(99, 102, 241, 0.1);
     transform: translateY(-2px);
+    cursor: none;
 }
 
 .nav-link.active {
@@ -296,6 +298,7 @@ body::before {
 .nav-link.nav-booking:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    cursor: none;
 }
 
 .theme-toggle {
@@ -314,6 +317,7 @@ body::before {
 .theme-toggle:hover {
     background: rgba(99, 102, 241, 0.1);
     transform: scale(1.1) rotate(15deg);
+    cursor: none;
 }
 
 /* Dark Mode Global Styles */
@@ -452,6 +456,7 @@ body::before {
 
 [data-theme="dark"] .modal-close:hover {
     background: rgba(255, 255, 255, 0.1);
+    cursor: none;
 }
 
 [data-theme="dark"] .form-group label {
@@ -467,6 +472,7 @@ body::before {
 
 [data-theme="dark"] .btn-secondary:hover {
     background: #475569;
+    cursor: none;
 }
 
 /* Dark Mode - Booking Modal */
@@ -558,6 +564,7 @@ body::before {
     background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    cursor: none;
 }
 
 .hero {
@@ -672,6 +679,7 @@ body::before {
 .btn:hover::before {
     width: 300px;
     height: 300px;
+    cursor: none;
 }
 
 .btn-primary {
@@ -683,6 +691,7 @@ body::before {
 .btn-primary:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 15px 40px rgba(99, 102, 241, 0.4);
+    cursor: none;
 }
 
 .btn-primary:active {
@@ -699,6 +708,7 @@ body::before {
 .btn-secondary:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-3px);
+    cursor: none;
 }
 
 .features {
@@ -770,6 +780,7 @@ body::before {
     transform: translateY(-10px) scale(1.02);
     box-shadow: 0 20px 50px rgba(99, 102, 241, 0.2);
     border-color: var(--primary);
+    cursor: none;
 }
 
 .feature-card:nth-child(1) { animation-delay: 0.1s; }
@@ -1177,6 +1188,7 @@ body::before {
     transform: translateY(-10px);
     box-shadow: 0 20px 60px rgba(99, 102, 241, 0.2);
     border-color: rgba(99, 102, 241, 0.3);
+    cursor: none;
 }
 
 .trip-image {
@@ -1320,6 +1332,7 @@ body::before {
 .modal-close:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: rotate(90deg);
+    cursor: none;
 }
 
 .modal-body {
@@ -1483,6 +1496,7 @@ body::before {
 .trip-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 40px rgba(99, 102, 241, 0.2);
+    cursor: none;
 }
 
 .booking-summary {
@@ -1811,6 +1825,7 @@ textarea.form-input-modern {
 .btn-booking-cta:hover {
     transform: translateY(-3px);
     box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+    cursor: none;
 }
 
 .btn-booking-cta:active {
@@ -2040,6 +2055,7 @@ textarea.form-input-modern {
 .btn-view:hover {
     background: rgba(99, 102, 241, 0.2);
     transform: translateY(-2px);
+    cursor: none;
 }
 
 .btn-delete {
@@ -2050,6 +2066,7 @@ textarea.form-input-modern {
 .btn-delete:hover {
     background: rgba(239, 68, 68, 0.2);
     transform: translateY(-2px);
+    cursor: none;
 }
 
 /* Loading Animations */
@@ -2649,6 +2666,7 @@ html {
 
 .profile-trigger:hover {
     background: rgba(99, 102, 241, 0.2);
+    cursor: none;
 }
 
 .profile-avatar {
@@ -2771,6 +2789,7 @@ html {
 .profile-dropdown-menu li:hover {
     background: rgba(99, 102, 241, 0.1);
     color: var(--primary);
+    cursor: none;
 }
 
 .profile-dropdown-menu li svg {
@@ -2783,6 +2802,7 @@ html {
 
 .profile-dropdown-menu li.logout-item:hover {
     background: rgba(239, 68, 68, 0.1);
+    cursor: none;
 }
 
 /* Dark mode support for profile */
@@ -2792,6 +2812,7 @@ html {
 
 [data-theme="dark"] .profile-trigger:hover {
     background: rgba(99, 102, 241, 0.25);
+    cursor: none;
 }
 
 [data-theme="dark"] .profile-dropdown {

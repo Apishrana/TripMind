@@ -111,6 +111,7 @@
     border-color: var(--primary);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    cursor: none;
 }
 
 /* Chat Messages */
@@ -193,6 +194,7 @@
     border-color: transparent;
     transform: translateX(10px);
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    cursor: none;
 }
 
 /* Chat Input Area */
@@ -227,6 +229,7 @@
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    cursor: none;
 }
 
 .plan-input-container {
@@ -270,6 +273,7 @@
 .plan-send-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    cursor: none;
 }
 
 .plan-send-btn:active {

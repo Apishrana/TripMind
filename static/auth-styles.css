@@ -143,6 +143,7 @@
     background: rgba(255, 255, 255, 0.25);
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    cursor: none;
 }
 
 .mini-icon {
@@ -197,6 +198,7 @@
 .btn-signin:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    cursor: none;
 }
 
 .btn-signup {
@@ -209,6 +211,7 @@
 .btn-signup:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-3px) scale(1.05);
+    cursor: none;
 }
 
 .btn-arrow {
@@ -379,10 +382,12 @@
 .btn-back:hover {
     background: #f1f5f9;
     transform: translateX(-5px);
+    cursor: none;
 }
 
 [data-theme="dark"] .btn-back:hover {
     background: #334155;
+    cursor: none;
 }
 
 .auth-title {
@@ -536,6 +541,7 @@
 .btn-submit:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    cursor: none;
 }
 
 .btn-submit:disabled {
@@ -611,10 +617,12 @@
     border-color: #667eea;
     background: #f8fafc;
     transform: translateY(-2px);
+    cursor: none;
 }
 
 [data-theme="dark"] .btn-social:hover {
     background: #475569;
+    cursor: none;
 }
 
 /* Auth Switch */
