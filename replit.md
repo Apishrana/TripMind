@@ -9,6 +9,11 @@ The project includes a complete authentication system with sign-in/sign-up funct
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Plan Trip Page Improvements**: Enhanced layout and user experience
+  - Reduced travel illustration size to 85% width (max 450px) to prevent text overflow
+  - Centered illustration with proper margins for better visual balance
+  - Added "✨ Others" suggestion chip that focuses input without preset text
+  - Users can now easily choose custom trips or use suggested templates
 - **Header Spacing Optimization**: Refined navbar spacing for better visual balance
   - Reduced nav-container padding from 1rem to 0.75rem for a more compact header
   - Adjusted nav-links gap from 2rem to 1.5rem for tighter navigation spacing
