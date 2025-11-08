@@ -2,14 +2,15 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 
-# the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+# Using Google Gemini AI instead of OpenAI
+# The newest Gemini model is "gemini-2.5-flash" or "gemini-2.5-pro"
 # do not change this unless explicitly requested by the user
 
 # Global user preferences storage (in production would use a database)
@@ -430,9 +431,12 @@ class TravelPlannerAgent:
     """Autonomous AI agent for travel planning with LangChain agent executor."""
     
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-5",
-            max_completion_tokens=8192
+        # Use GEMINI_API_KEY environment variable (mapped to google_api_key parameter)
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash",
+            temperature=0.7,
+            google_api_key=gemini_key
         )
         
         # Chat history for conversation memory
@@ -517,7 +521,22 @@ Remember: You have autonomy to use multiple tools in sequence to build complete 
             
             # Extract the final response
             final_message = result["messages"][-1]
-            response_text = final_message.content if hasattr(final_message, 'content') else str(final_message)
+            
+            # Handle different response formats (Gemini returns list, OpenAI returns string)
+            if hasattr(final_message, 'content'):
+                content = final_message.content
+                # If content is a list (Gemini format), extract text from it
+                if isinstance(content, list):
+                    response_text = ""
+                    for item in content:
+                        if isinstance(item, dict) and 'text' in item:
+                            response_text += item['text']
+                        elif isinstance(item, str):
+                            response_text += item
+                else:
+                    response_text = str(content)
+            else:
+                response_text = str(final_message)
             
             # Add to chat history
             self.chat_history.add_user_message(user_request)

@@ -1,206 +1,112 @@
-# Travel Planner & Automation AI Agent
+# Travel Planner AI Agent
 
 ## Overview
-An autonomous AI agent that plans complete travel itineraries using natural language understanding, multi-step reasoning, and intelligent tool orchestration. The agent autonomously searches flights, hotels, activities, checks weather, calculates budgets, and creates detailed day-by-day itineraries while remembering user preferences across sessions.
 
-## Project Status
-✅ **Fully Functional** - Ready for demo and deployment
+An autonomous AI-powered travel planning application that uses natural language processing to create complete travel itineraries. The system leverages LangGraph's reactive agent framework to orchestrate multiple specialized tools, enabling multi-step reasoning and intelligent decision-making. Users interact through a conversational web interface where they can request travel plans in natural language, and the AI agent autonomously researches flights, hotels, activities, weather, and budgets to generate comprehensive itineraries.
 
-## Tech Stack
-- **Backend**: Python 3.11 + FastAPI + Uvicorn
-- **AI Framework**: LangGraph + LangChain
-- **LLM**: OpenAI GPT-5 (latest model, August 2025)
-- **Frontend**: HTML5/CSS3/JavaScript (vanilla, responsive design)
-- **APIs**: 8 autonomous travel planning tools
+## User Preferences
 
-## Key Features Implemented
+Preferred communication style: Simple, everyday language.
 
-### 1. **Autonomous Multi-Step Planning** ✨
-- Uses LangGraph's `create_react_agent` for true autonomous decision-making
-- LLM-driven tool orchestration - agent decides which tools to use and in what order
-- Multi-step reasoning: agent chains multiple tools to build complete plans
+## System Architecture
 
-### 2. **Intelligent Tool System** 🛠️
-8 specialized tools with `@tool` decorators:
-- `search_flights` - Find flights with prices, times, airlines
-- `search_hotels` - Discover accommodations matching preferences
-- `get_weather_forecast` - Weather information for travel dates
-- `search_activities` - Local attractions and experiences
-- `calculate_trip_budget` - Detailed cost breakdowns
-- `save_user_preferences` - Store travel preferences
-- `get_user_preferences` - Retrieve saved preferences
-- `create_day_by_day_itinerary` - Generate detailed daily plans
+### Application Architecture
+**Pattern**: Monolithic backend with static frontend
+- **Backend**: FastAPI server exposing REST API endpoints
+- **Frontend**: Vanilla JavaScript single-page application (no framework)
+- **Deployment**: Self-contained Python application with embedded static file serving
 
-### 3. **Memory & Personalization** 🧠
-- **Conversation Memory**: Chat history preserved across interactions
-- **Preference Storage**: Global store for cross-session preference recall
-- **Context-Aware**: Agent proactively uses saved preferences when planning
+**Rationale**: Simplifies deployment and reduces complexity. FastAPI provides async capabilities and automatic API documentation. Vanilla JS keeps the frontend lightweight and eliminates build tooling requirements.
 
-### 4. **Smart Recommendations** 🎯
-- Budget optimization - finds best options within constraints
-- Weather-aware planning - considers seasonal conditions
-- Interest-based filtering - matches activities to user preferences
-- Multi-option presentation - provides alternatives with reasoning
+### AI Agent Architecture
+**Framework**: LangGraph with ReAct (Reasoning + Acting) pattern
+- **Agent Type**: `create_react_agent` - autonomous multi-step planning agent
+- **LLM Provider**: Google Gemini AI (gemini-2.5-flash or gemini-2.5-pro models)
+- **Tool Orchestration**: LLM decides which tools to invoke and in what sequence
+- **Memory Management**: ChatMessageHistory maintains conversation context across interactions
 
-### 5. **Beautiful Web Interface** 🎨
-- Modern gradient design with purple/blue theme
-- Quick example prompts for easy testing
-- Real-time chat interface with loading states
-- Responsive layout with sidebar and chat area
-- Feature badges and visual hierarchy
+**Rationale**: LangGraph's ReAct agent enables true autonomous behavior where the LLM reasons about which actions to take. This allows the agent to chain multiple tools (e.g., search flights → check weather → find hotels → calculate budget) without hardcoded workflows. Google Gemini provides cost-effective, high-quality language understanding.
 
-## File Structure
-```
-.
-├── agent/
-│   └── travel_agent.py         # Core AI agent with LangGraph & tools
-├── static/
-│   └── index.html              # Interactive web interface
-├── main.py                     # FastAPI application & API endpoints
-├── pyproject.toml              # Python dependencies
-└── replit.md                   # This documentation
-```
+### Tool System
+**Pattern**: Decorator-based tool registry with typed inputs
+- **Implementation**: LangChain `@tool` decorators for function-to-tool conversion
+- **Tool Count**: 8 specialized tools covering different travel planning domains
+- **Type Safety**: Pydantic validation for tool parameters
 
-## API Endpoints
-- `GET /` - Main web interface
-- `POST /api/plan` - Autonomous travel planning (agent orchestration)
-- `POST /api/reset` - Clear conversation memory
-- `GET /api/history` - Get conversation history
-- `GET /api/preferences` - Get saved user preferences
-- `GET /health` - Health check endpoint
+**Tools**:
+1. `search_flights` - Flight search with pricing
+2. `search_hotels` - Accommodation discovery
+3. `get_weather_forecast` - Weather data retrieval
+4. `search_activities` - Local attractions/experiences
+5. `calculate_trip_budget` - Cost estimation
+6. `save_user_preferences` - Preference persistence
+7. `get_user_preferences` - Preference retrieval
+8. `create_day_by_day_itinerary` - Daily schedule generation
 
-## Agent Architecture
+**Rationale**: Modular tool design allows the agent to compose complex plans from simple building blocks. Each tool has a single responsibility, making them easier to test and maintain. The decorator pattern provides automatic schema generation for the LLM.
 
-### How It Works
-1. **User Input** → Natural language request via web interface
-2. **Agent Reasoning** → LLM analyzes request and plans tool sequence
-3. **Tool Execution** → Agent autonomously calls multiple tools:
-   - Checks saved preferences first
-   - Searches flights matching budget
-   - Finds hotels based on preferences
-   - Gets weather forecast
-   - Discovers activities matching interests
-   - Calculates detailed budget
-   - Creates day-by-day itinerary
-4. **Smart Response** → Agent synthesizes tool outputs into comprehensive plan
-5. **Memory Update** → Saves new preferences and conversation context
+### State Management
+**Pattern**: Hybrid - in-memory for conversations, global store for preferences
+- **Conversation Memory**: ChatMessageHistory (per-session, ephemeral)
+- **User Preferences**: Python dictionary (global, in-memory)
+- **No Database**: Current implementation uses in-process storage
 
-### Autonomy Features
-- ✅ Self-directed tool selection
-- ✅ Multi-step reasoning chains
-- ✅ Context-aware decision making
-- ✅ Budget constraint handling
-- ✅ Preference-based recommendations
-- ✅ Error handling and graceful fallbacks
+**Rationale**: For prototyping and demos, in-memory storage eliminates database setup complexity. Conversation history only needs to persist during active sessions. User preferences are stored globally to enable cross-session personalization.
 
-## Demo Examples
+**Production Consideration**: The global `user_preferences_store` dictionary would need migration to persistent storage (database, Redis, etc.) for production deployments to handle multiple users and server restarts.
 
-### Example 1: Beach Vacation
-```
-"Plan a 5-day beach trip in Goa under $500, December"
-```
-**Agent Actions**:
-1. Checks preferences
-2. Searches flights to Goa
-3. Finds budget-friendly hotels
-4. Gets December weather
-5. Suggests beach activities
-6. Calculates total budget
-7. Creates 5-day itinerary
+### API Design
+**Pattern**: RESTful JSON API with single planning endpoint
+- **Endpoint**: `POST /api/plan` - accepts natural language queries
+- **Request Format**: JSON with `query` field
+- **Response Format**: Structured JSON with status, response, request echo, and error fields
 
-### Example 2: Family Trip with Preferences
-```
-"I want to visit Paris for 7 days with my family, budget is $3000, we love museums and food"
-```
-**Agent Actions**:
-1. Saves preferences (family travel, museums, food)
-2. Searches Paris flights
-3. Finds family-friendly hotels
-4. Gets Paris weather
-5. Filters cultural & food activities
-6. Budgets $3000 across all categories
-7. Creates 7-day cultural itinerary
+**Rationale**: Simple API surface reduces integration complexity. Single endpoint handles all travel planning queries since the agent's autonomous nature allows it to interpret diverse intents from natural language.
 
-### Example 3: Adventure Weekend
-```
-"Plan a weekend adventure trip to Manali for trekking and camping, budget $200"
-```
-**Agent Actions**:
-1. Detects adventure preference
-2. Finds budget flights to Manali
-3. Suggests adventure hotels/camps
-4. Checks mountain weather
-5. Lists trekking activities
-6. Optimizes $200 budget
-7. Creates 2-day adventure plan
+### Frontend Architecture
+**Pattern**: Static file serving with client-side rendering
+- **No Build Process**: Direct HTML/CSS/JS files served via FastAPI StaticFiles
+- **Real-time Updates**: Fetch API for async backend communication
+- **Responsive Design**: CSS-based responsive layout without frameworks
 
-### Example 4: Save Preferences
-```
-"I prefer luxury hotels, vegetarian food, and cultural activities. Save this for future trips."
-```
-**Agent Actions**:
-1. Extracts preferences from text
-2. Stores in global preference store
-3. Confirms saved preferences
-4. Will apply to all future planning
+**Rationale**: Zero build complexity speeds development iteration. Modern browsers handle vanilla JS efficiently. Gradient-based UI design provides visual appeal without heavy CSS frameworks.
 
-## Environment Variables
-- `OPENAI_API_KEY` - Required for GPT-5 API access (managed via Replit Secrets)
+## External Dependencies
 
-## Running the Application
-```bash
-python main.py
-```
-Runs on `http://0.0.0.0:5000` - accessible via Replit's webview
+### AI/ML Services
+- **Google Gemini AI**: Primary LLM provider via `langchain_google_genai`
+  - Models: gemini-2.5-flash or gemini-2.5-pro
+  - Requires: `GEMINI_API_KEY` environment variable (passed as `google_api_key` parameter)
+  - Purpose: Natural language understanding, reasoning, tool selection
+  - Migration Note (Nov 2025): Migrated from OpenAI to Google Gemini for cost-effective AI credits
 
-## Recent Changes (November 7, 2025)
-- ✅ Implemented LangGraph-based autonomous agent with `create_react_agent`
-- ✅ Created 8 specialized tools with proper `@tool` decorators
-- ✅ Integrated conversation memory with `ChatMessageHistory`
-- ✅ Built global preference store for cross-session persistence
-- ✅ Designed modern web interface with gradient styling
-- ✅ Added comprehensive system prompt for agent behavior
-- ✅ Implemented FastAPI endpoints with error handling
-- ✅ Configured Replit workflow for port 5000 webview
+### Python Frameworks
+- **FastAPI**: Web framework for REST API
+  - Provides async request handling and automatic OpenAPI documentation
+  
+- **Uvicorn**: ASGI server for running FastAPI application
+  - Production-ready async server
 
-## Technical Highlights
+- **LangGraph**: Agent orchestration framework
+  - Enables reactive agent pattern with multi-step reasoning
+  
+- **LangChain**: LLM application framework
+  - Provides tool abstraction, prompt templates, message history
+  - Components: `langchain_core`, `langchain_community`
 
-### Autonomy & Intelligence
-- Uses GPT-5's native tool calling for autonomous decisions
-- Agent decides tool sequence based on context, not hardcoded logic
-- Multi-step reasoning: "I need budget → check preferences → search flights → find hotels → calculate total"
-- Adapts to user preferences automatically
+- **Pydantic**: Data validation and settings management
+  - Validates API request/response models
+  - Provides type safety for tool parameters
 
-### Code Quality
-- Type hints throughout (`typing` module)
-- Proper error handling with try/except
-- Clean separation: agent logic / API layer / frontend
-- Tool outputs in structured JSON for LLM parsing
-- Docstrings on all functions and tools
+### Data Storage
+**Current**: In-memory Python dictionaries
+- No external database configured
+- `user_preferences_store`: global dictionary for user preferences
+- `ChatMessageHistory`: per-session conversation storage
 
-### Scalability Considerations
-- Global preference store (production would use database)
-- Stateless API design (except in-memory chat history)
-- Tool outputs include all necessary context
-- Agent handles variable-length tool sequences
+**Future Consideration**: System is designed to swap in persistent storage (PostgreSQL, MongoDB, Redis) by replacing the global dictionary with database calls in the preference save/get tools.
 
-## Future Enhancements
-- 🔄 Real API integrations (Amadeus, Skyscanner, Booking.com, OpenWeatherMap)
-- 📧 Email/calendar automation with tool integrations
-- 💳 Payment processing integration
-- 🗄️ Database for multi-user support and persistent storage
-- 🌐 i18n support for multiple languages
-- 📊 Analytics dashboard for popular destinations
-- 🔐 User authentication and session management
-- 🚀 Advanced NER for better entity extraction
-- 📱 Mobile-responsive PWA
-
-## Deployment Ready
-This application is ready to be published on Replit! Click the "Deploy" button to make it live with a public URL.
-
-## Credits
-Built with:
-- LangChain/LangGraph for AI agent orchestration
-- OpenAI GPT-5 for natural language understanding
-- FastAPI for modern Python web framework
-- Replit for hosting and development environment
+### Static Assets
+- **No CDN dependencies**: All CSS/JS is inline or self-hosted
+- **No frontend framework**: Pure HTML5/CSS3/JavaScript
+- **No external fonts or libraries**: Self-contained design
