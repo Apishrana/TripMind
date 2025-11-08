@@ -920,6 +920,13 @@ async function saveEvent(e) {
     const reminderEnabled = document.getElementById('event-reminder').checked;
     const reminderTime = reminderEnabled ? document.getElementById('event-reminder-time').value : null;
     
+    // Add loading state to save button
+    const saveBtn = document.querySelector('#event-form button[type="submit"]');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '⏳ Saving...';
+    }
+    
     const eventData = {
         title: title,
         description: description,
@@ -971,11 +978,20 @@ async function saveEvent(e) {
         if (data.status === 'success') {
             showSuccessMessage('✅ Event saved successfully!');
             closeEventModal();
-            // Force calendar refresh
+            // Force calendar refresh with animation
             if (calendar) {
                 setTimeout(() => {
                     calendar.refetchEvents();
                     updateCalendarStats();
+                    
+                    // Add a subtle flash animation to the calendar
+                    const calendarWrapper = document.querySelector('.calendar-wrapper');
+                    if (calendarWrapper) {
+                        calendarWrapper.style.animation = 'none';
+                        setTimeout(() => {
+                            calendarWrapper.style.animation = 'messageHighlight 0.8s ease-out';
+                        }, 10);
+                    }
                 }, 100);
             }
         } else {
@@ -986,6 +1002,13 @@ async function saveEvent(e) {
     } catch (error) {
         console.error('Error saving event:', error);
         alert('Error saving event: ' + (error.message || 'Network error. Please check your connection.'));
+    } finally {
+        // Restore button state
+        const saveBtn = document.querySelector('#event-form button[type="submit"]');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Save Event';
+        }
     }
 }
 
