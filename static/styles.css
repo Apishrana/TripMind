@@ -1087,6 +1087,210 @@ textarea.form-input-modern {
     }
 }
 
+/* Calendar Styles */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.calendar-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+    display: flex;
+    border-left: 5px solid var(--primary);
+    animation: fadeIn 0.5s ease-out;
+}
+
+.calendar-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-left-color: var(--secondary);
+}
+
+.calendar-date {
+    background: var(--gradient-1);
+    color: white;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    text-align: center;
+}
+
+.date-month {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.date-day {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0.5rem 0;
+}
+
+.date-year {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.calendar-content {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.trip-destination,
+.trip-dates,
+.trip-duration,
+.trip-budget,
+.trip-description {
+    margin: 0.5rem 0;
+    color: var(--gray);
+    font-size: 0.95rem;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.btn-view {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.btn-view:hover {
+    background: rgba(99, 102, 241, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Loading Animations */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+}
+
+.loading-spinner-large {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s linear infinite;
+}
+
+/* Send Button Spinning Effect */
+.btn-primary.spinning {
+    animation: pulse 1.5s ease-in-out infinite, rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.btn-primary.spinning:hover {
+    transform: translateY(-3px) rotate(360deg);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    animation: floating 3s ease-in-out infinite;
+}
+
+.empty-state h3 {
+    font-size: 1.8rem;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--gray);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+/* Fade-in Animation for Messages */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+/* Data Fetching Skeleton Loader */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 10px;
+}
+
+/* Badge warning */
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
 @media (max-width: 768px) {
     .hero-title {
         font-size: 2.5rem;
@@ -1101,12 +1305,28 @@ textarea.form-input-modern {
     }
 
     .features-grid,
-    .trips-grid {
+    .trips-grid,
+    .calendar-grid {
         grid-template-columns: 1fr;
     }
     
     .modal-content {
         width: 95%;
         max-height: 90vh;
+    }
+    
+    .calendar-card {
+        flex-direction: column;
+    }
+    
+    .calendar-date {
+        flex-direction: row;
+        gap: 1rem;
+        padding: 1rem;
+        min-width: auto;
+    }
+    
+    .date-day {
+        font-size: 2rem;
     }
 }

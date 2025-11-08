@@ -17,6 +17,7 @@
             <ul class="nav-links">
                 <li class="nav-link active" data-page="home" onclick="navigateTo('home')">Home</li>
                 <li class="nav-link" data-page="plan" onclick="navigateTo('plan')">Plan Trip</li>
+                <li class="nav-link" data-page="calendar" onclick="navigateTo('calendar')">📅 Calendar</li>
                 <li class="nav-link" data-page="trips" onclick="navigateTo('trips')">My Trips</li>
                 <li class="nav-link" data-page="preferences" onclick="navigateTo('preferences')">Preferences</li>
             </ul>
@@ -160,6 +161,25 @@
                         </span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Page -->
+    <div id="calendar-page" class="page">
+        <div class="container" style="padding: 3rem 2rem;">
+            <h2 class="section-title">📅 Travel Calendar</h2>
+            <p class="feature-desc" style="text-align: center; max-width: 700px; margin: 0 auto 3rem;">
+                View all your planned trips and itineraries in one place. Keep track of your travel schedule and never miss an adventure!
+            </p>
+            
+            <div id="calendar-loading" class="loading-container" style="display: none;">
+                <div class="loading-spinner-large"></div>
+                <p style="margin-top: 1rem; color: var(--gray);">Loading your itineraries...</p>
+            </div>
+            
+            <div id="calendar-content">
+                <!-- Calendar grid will be populated here -->
             </div>
         </div>
     </div>

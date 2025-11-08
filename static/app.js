@@ -20,6 +20,8 @@ function navigateTo(page) {
             loadPreferences();
         } else if (page === 'trips') {
             loadMyTrips();
+        } else if (page === 'calendar') {
+            loadCalendar();
         }
     }
 }
@@ -67,7 +69,8 @@ async function sendMessage() {
     input.value = '';
     
     sendBtn.disabled = true;
-    sendBtn.innerHTML = '<span class="loading-spinner"></span>';
+    sendBtn.classList.add('spinning');
+    sendBtn.innerHTML = '<span class="loading-spinner"></span> Planning...';
     
     try {
         const response = await fetch('/api/plan', {
@@ -89,6 +92,7 @@ async function sendMessage() {
         addMessage('assistant', '❌ Error connecting to server: ' + error.message);
     } finally {
         sendBtn.disabled = false;
+        sendBtn.classList.remove('spinning');
         sendBtn.innerHTML = '✈️ Send';
     }
 }
@@ -344,7 +348,114 @@ function closeModal(modalId) {
     modal.classList.remove('active');
 }
 
+async function loadCalendar() {
+    const loadingDiv = document.getElementById('calendar-loading');
+    const contentDiv = document.getElementById('calendar-content');
+    
+    loadingDiv.style.display = 'flex';
+    contentDiv.innerHTML = '';
+    
+    try {
+        const response = await fetch('/api/itineraries');
+        const data = await response.json();
+        
+        loadingDiv.style.display = 'none';
+        
+        if (data.status === 'success' && data.itineraries && data.itineraries.length > 0) {
+            let html = '<div class="calendar-grid">';
+            
+            data.itineraries.forEach(itin => {
+                const startDate = new Date(itin.start_date);
+                const endDate = new Date(itin.end_date);
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                
+                html += `
+                    <div class="calendar-card">
+                        <div class="calendar-date">
+                            <div class="date-month">${monthNames[startDate.getMonth()]}</div>
+                            <div class="date-day">${startDate.getDate()}</div>
+                            <div class="date-year">${startDate.getFullYear()}</div>
+                        </div>
+                        <div class="calendar-content">
+                            <h3 class="trip-title">${itin.trip_name}</h3>
+                            <p class="trip-destination">📍 ${itin.destination}</p>
+                            <p class="trip-dates">📅 ${itin.start_date} to ${itin.end_date}</p>
+                            <p class="trip-duration">⏱️ ${itin.duration_days} days</p>
+                            ${itin.budget ? `<p class="trip-budget">💰 $${itin.budget.toFixed(2)}</p>` : ''}
+                            ${itin.description ? `<p class="trip-description">${itin.description}</p>` : ''}
+                            <div class="calendar-actions">
+                                <button class="btn-small btn-view" onclick="viewItinerary(${itin.id})">👁️ View Details</button>
+                                <button class="btn-small btn-delete" onclick="deleteItinerary(${itin.id})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            contentDiv.innerHTML = html;
+        } else {
+            contentDiv.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <h3>No itineraries yet</h3>
+                    <p>Start planning trips with our AI assistant and they'll appear here!</p>
+                    <button class="btn btn-primary" onclick="navigateTo('plan')">🚀 Plan Your First Trip</button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        loadingDiv.style.display = 'none';
+        contentDiv.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">❌</div>
+                <h3>Error loading itineraries</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+async function viewItinerary(id) {
+    try {
+        const response = await fetch(`/api/itineraries/${id}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const itin = data.itinerary;
+            alert(`Trip: ${itin.trip_name}\nDestination: ${itin.destination}\nDates: ${itin.start_date} to ${itin.end_date}\nDuration: ${itin.duration_days} days\nBudget: $${itin.budget || 'N/A'}\n\n${itin.description || ''}`);
+        }
+    } catch (error) {
+        alert('Error loading itinerary: ' + error.message);
+    }
+}
+
+async function deleteItinerary(id) {
+    if (!confirm('Are you sure you want to delete this itinerary?')) return;
+    
+    try {
+        const response = await fetch(`/api/itineraries/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            showSuccessMessage('✅ Itinerary deleted successfully!');
+            loadCalendar();
+        } else {
+            alert('Error deleting itinerary');
+        }
+    } catch (error) {
+        alert('Error deleting itinerary: ' + error.message);
+    }
+}
+
 async function loadMyTrips() {
+    const tripsGrid = document.querySelector('#trips-page .trips-grid');
+    
+    tripsGrid.innerHTML = '<div class="loading-container"><div class="loading-spinner-large"></div><p>Loading your trips...</p></div>';
+    
     try {
         const response = await fetch('/api/bookings');
         const data = await response.json();

@@ -1,17 +1,23 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from agent.travel_agent import TravelPlannerAgent
 import uvicorn
 import stripe
-from typing import Optional, Dict, Any
+from stripe._error import StripeError
+from typing import Optional, Dict, Any, List
 from datetime import datetime
 import json
+from sqlalchemy.orm import Session
+from database import init_db, get_db, Itinerary
 
 # Initialize FastAPI app
 app = FastAPI(title="Travel Planner AI Agent")
+
+# Initialize database
+init_db()
 
 # Initialize Stripe (API key will be set from environment)
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
@@ -53,6 +59,16 @@ class BookingRequest(BaseModel):
 class PaymentRequest(BaseModel):
     booking_id: str
     amount: float
+
+class ItineraryRequest(BaseModel):
+    trip_name: str
+    destination: str
+    start_date: str
+    end_date: str
+    duration_days: int
+    budget: Optional[float] = None
+    description: Optional[str] = None
+    itinerary_data: Optional[Dict[str, Any]] = None
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -262,7 +278,7 @@ async def create_checkout_session(payment: PaymentRequest):
             "checkout_url": checkout_session.url,
             "session_id": checkout_session.id
         }
-    except stripe.error.StripeError as e:
+    except StripeError as e:
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -299,6 +315,112 @@ async def cancel_booking(booking_id: str):
             "message": "Booking cancelled successfully"
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/itineraries")
+async def save_itinerary(request: ItineraryRequest, db: Session = Depends(get_db)):
+    """Save a planned itinerary to the calendar."""
+    try:
+        itinerary = Itinerary(
+            trip_name=request.trip_name,
+            destination=request.destination,
+            start_date=request.start_date,
+            end_date=request.end_date,
+            duration_days=request.duration_days,
+            budget=request.budget,
+            description=request.description,
+            itinerary_data=request.itinerary_data or {}
+        )
+        db.add(itinerary)
+        db.commit()
+        db.refresh(itinerary)
+        
+        return {
+            "status": "success",
+            "itinerary_id": itinerary.id,
+            "message": "Itinerary saved successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/itineraries")
+async def get_itineraries(db: Session = Depends(get_db)):
+    """Get all itineraries for the calendar."""
+    try:
+        itineraries = db.query(Itinerary).order_by(Itinerary.created_at.desc()).all()
+        
+        result = []
+        for itin in itineraries:
+            result.append({
+                "id": itin.id,
+                "trip_name": itin.trip_name,
+                "destination": itin.destination,
+                "start_date": itin.start_date,
+                "end_date": itin.end_date,
+                "duration_days": itin.duration_days,
+                "budget": itin.budget,
+                "description": itin.description,
+                "itinerary_data": itin.itinerary_data,
+                "created_at": itin.created_at.isoformat() if itin.created_at else None
+            })
+        
+        return {
+            "status": "success",
+            "itineraries": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/itineraries/{itinerary_id}")
+async def get_itinerary(itinerary_id: int, db: Session = Depends(get_db)):
+    """Get a specific itinerary by ID."""
+    try:
+        itinerary = db.query(Itinerary).filter(Itinerary.id == itinerary_id).first()
+        
+        if not itinerary:
+            raise HTTPException(status_code=404, detail="Itinerary not found")
+        
+        return {
+            "status": "success",
+            "itinerary": {
+                "id": itinerary.id,
+                "trip_name": itinerary.trip_name,
+                "destination": itinerary.destination,
+                "start_date": itinerary.start_date,
+                "end_date": itinerary.end_date,
+                "duration_days": itinerary.duration_days,
+                "budget": itinerary.budget,
+                "description": itinerary.description,
+                "itinerary_data": itinerary.itinerary_data,
+                "created_at": itinerary.created_at.isoformat() if itinerary.created_at else None
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/itineraries/{itinerary_id}")
+async def delete_itinerary(itinerary_id: int, db: Session = Depends(get_db)):
+    """Delete an itinerary from the calendar."""
+    try:
+        itinerary = db.query(Itinerary).filter(Itinerary.id == itinerary_id).first()
+        
+        if not itinerary:
+            raise HTTPException(status_code=404, detail="Itinerary not found")
+        
+        db.delete(itinerary)
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Itinerary deleted successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
