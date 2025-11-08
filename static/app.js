@@ -2140,6 +2140,9 @@ async function handleSignUp(event) {
             localStorage.setItem('user', JSON.stringify(data.user));
             sessionStorage.setItem('auth_token', data.token);
             
+            // Load user profile
+            loadUserProfile();
+            
             // Show success message
             showSuccessMessage('✅ Account created successfully! Welcome aboard!');
             
@@ -2166,6 +2169,68 @@ function logout() {
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('auth_token');
     navigateTo('welcome');
+}
+
+// ========== PROFILE MENU ==========
+function toggleProfileMenu(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profile-dropdown');
+    
+    if (dropdown.style.display === 'none') {
+        dropdown.style.display = 'block';
+        // Add click listener to close when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', closeProfileMenuOnClickOutside);
+        }, 0);
+    } else {
+        dropdown.style.display = 'none';
+        document.removeEventListener('click', closeProfileMenuOnClickOutside);
+    }
+}
+
+function closeProfileMenuOnClickOutside(event) {
+    const dropdown = document.getElementById('profile-dropdown');
+    const profileContainer = document.querySelector('.profile-menu-container');
+    
+    if (!profileContainer.contains(event.target)) {
+        dropdown.style.display = 'none';
+        document.removeEventListener('click', closeProfileMenuOnClickOutside);
+    }
+}
+
+function loadUserProfile() {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            
+            // Update profile name and email
+            const profileName = document.getElementById('profile-name');
+            const profileEmail = document.getElementById('profile-email');
+            
+            if (profileName) profileName.textContent = user.name || 'User Name';
+            if (profileEmail) profileEmail.textContent = user.email || 'user@example.com';
+            
+            // Update initials in avatar
+            const initials = getInitials(user.name || 'User');
+            const profileInitials = document.getElementById('profile-initials');
+            const profileInitialsLarge = document.getElementById('profile-initials-large');
+            
+            if (profileInitials) profileInitials.textContent = initials;
+            if (profileInitialsLarge) profileInitialsLarge.textContent = initials;
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+        }
+    }
+}
+
+function getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
 }
 
 // ========== FEATURE EXPLANATIONS ==========
@@ -2329,6 +2394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check authentication and navigate accordingly
     if (checkAuth()) {
         navigateTo('home');
+        loadUserProfile(); // Load user profile info
     } else {
         navigateTo('welcome');
     }

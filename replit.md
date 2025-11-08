@@ -8,6 +8,16 @@ The project includes a complete authentication system with sign-in/sign-up funct
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (Latest)
+- **Profile Menu Added**: New profile dropdown in navbar's rightmost corner with complete user information
+  - Shows user avatar with initials
+  - Displays user name and email
+  - Quick access menu with Settings, My Trips, and Calendar links
+  - Logout functionality
+  - Beautiful dropdown with smooth animations
+  - Full dark mode support
+  - Automatically loads user data from localStorage on page load
+
 ## System Architecture
 
 ### Application Architecture
