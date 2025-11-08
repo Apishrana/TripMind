@@ -6,11 +6,33 @@
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-    border-radius: 20px;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(236, 72, 153, 0.15) 50%, rgba(168, 85, 247, 0.15) 100%);
+    border-radius: 24px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    overflow: hidden;
     animation: fadeInDown 0.5s ease-out;
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2), 0 0 0 1px rgba(99, 102, 241, 0.1);
+}
+
+.calendar-page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    opacity: 0.1;
+    z-index: -1;
+    animation: gradientFloat 8s ease-in-out infinite;
+}
+
+@keyframes gradientFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.1; }
+    50% { transform: translateY(-10px) scale(1.05); opacity: 0.15; }
 }
 
 .calendar-header-left {
@@ -18,14 +40,23 @@
 }
 
 .calendar-main-title {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 3rem;
+    font-weight: 900;
     margin: 0 0 0.5rem 0;
-    background: linear-gradient(135deg, var(--primary) 0%, #ec4899 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #ec4899 75%, #667eea 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: gradientShift 3s ease infinite;
+    animation: gradientShift 4s linear infinite;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+    filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.4));
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
 }
 
 .calendar-subtitle {
@@ -69,25 +100,50 @@
 }
 
 .calendar-add-btn {
-    background: var(--gradient-1);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.calendar-add-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.calendar-add-btn:hover::before {
+    left: 100%;
 }
 
 .calendar-add-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5), 0 0 40px rgba(99, 102, 241, 0.3);
 }
 
-/* View Selector */
+.calendar-add-btn:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* View Selector - Enhanced */
 .calendar-view-selector {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    background: white;
-    padding: 0.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 0.6rem;
+    border-radius: 16px;
+    box-shadow: 
+        0 4px 16px rgba(99, 102, 241, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
     animation: fadeInUp 0.5s ease-out 0.1s both;
+    border: 1px solid rgba(99, 102, 241, 0.1);
 }
 
 .view-btn {
@@ -126,21 +182,31 @@
 }
 
 .view-btn.active {
-    background: var(--gradient-1);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    box-shadow: 
+        0 4px 12px rgba(99, 102, 241, 0.4),
+        0 0 20px rgba(99, 102, 241, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
 }
 
-/* Calendar Wrapper */
+/* Calendar Wrapper - Glassmorphism */
 .calendar-wrapper {
-    background: white;
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 
+        0 8px 32px rgba(99, 102, 241, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.18),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     animation: fadeInUp 0.5s ease-out 0.2s both;
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(99, 102, 241, 0.1);
 }
 
 .calendar-wrapper::before {
@@ -149,10 +215,19 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: var(--gradient-1);
-    transform: scaleX(0);
-    animation: slideInLeft 0.6s ease-out 0.3s forwards;
+    height: 5px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #ec4899 75%, #667eea 100%);
+    background-size: 200% auto;
+    animation: slideInLeft 0.6s ease-out 0.3s forwards, gradientShift 3s linear infinite;
+    border-radius: 24px 24px 0 0;
+}
+
+.calendar-wrapper:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 12px 48px rgba(99, 102, 241, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 
 .calendar-container {
@@ -172,13 +247,16 @@
 .stat-card {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid transparent;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 
+        0 4px 20px rgba(99, 102, 241, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid rgba(99, 102, 241, 0.1);
     position: relative;
     overflow: hidden;
 }
@@ -188,33 +266,75 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 5px;
     height: 100%;
-    background: var(--gradient-1);
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     transform: scaleY(0);
-    transition: transform 0.3s;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: var(--primary);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 
+        0 12px 32px rgba(99, 102, 241, 0.2),
+        0 0 40px rgba(99, 102, 241, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
 .stat-card:hover::before {
     transform: scaleY(1);
 }
 
+.stat-card:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
 .stat-icon {
-    font-size: 2.5rem;
-    width: 60px;
-    height: 60px;
+    font-size: 2.8rem;
+    width: 70px;
+    height: 70px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 50%, rgba(236, 72, 153, 0.15) 100%);
+    border-radius: 16px;
     animation: float 3s ease-in-out infinite;
+    box-shadow: 
+        0 4px 16px rgba(99, 102, 241, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-icon::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    animation: iconShine 3s linear infinite;
+}
+
+@keyframes iconShine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
 .stat-info {
@@ -222,11 +342,15 @@
 }
 
 .stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--primary);
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     line-height: 1;
     margin-bottom: 0.25rem;
+    filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.2));
 }
 
 .stat-label {
