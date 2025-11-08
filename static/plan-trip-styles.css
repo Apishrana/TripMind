@@ -298,7 +298,9 @@
 
 /* Travel Illustration */
 .travel-illustration {
-    width: 100%;
+    width: 85%;
+    max-width: 450px;
+    margin: 0 auto;
     animation: fadeIn 1s ease-out;
 }
 
