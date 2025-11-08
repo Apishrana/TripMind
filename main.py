@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 import json
 from sqlalchemy.orm import Session
-from database import init_db, get_db, Itinerary, Booking, CalendarEvent
+from database import init_db, get_db, Itinerary, Booking, CalendarEvent, User, Session as DBSession
 
 # Initialize FastAPI app
 app = FastAPI(title="Travel Planner AI Agent")
@@ -112,73 +112,82 @@ async def read_root():
     """Serve the main HTML page."""
     return FileResponse("static/index.html")
 
-# In-memory user storage (in production, use a real database)
-users_db = {}
-sessions_db = {}
-
-import hashlib
 import secrets
+from passlib.context import CryptContext
+
+# Password hashing context using bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
-    """Hash a password using SHA-256."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Hash a password using bcrypt."""
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against a hash."""
+    return pwd_context.verify(plain_password, hashed_password)
 
 def generate_token() -> str:
     """Generate a secure random token."""
     return secrets.token_urlsafe(32)
 
 @app.post("/api/auth/signup")
-async def signup(request: AuthSignUpRequest):
+async def signup(request: AuthSignUpRequest, db: Session = Depends(get_db)):
     """User signup endpoint."""
     try:
         # Check if user already exists
-        if request.email in users_db:
+        existing_user = db.query(User).filter(User.email == request.email).first()
+        if existing_user:
             return {
                 "status": "error",
                 "message": "Email already registered"
             }
         
         # Create new user
-        users_db[request.email] = {
-            "name": request.name,
-            "email": request.email,
-            "password": hash_password(request.password),
-            "created_at": datetime.now().isoformat()
-        }
+        new_user = User(
+            name=request.name,
+            email=request.email,
+            password_hash=hash_password(request.password)
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
         
         # Generate auth token
         token = generate_token()
-        sessions_db[token] = {
-            "email": request.email,
-            "created_at": datetime.now().isoformat()
-        }
+        new_session = DBSession(
+            token=token,
+            user_id=new_user.id,
+            email=new_user.email
+        )
+        db.add(new_session)
+        db.commit()
         
         return {
             "status": "success",
             "user": {
-                "name": request.name,
-                "email": request.email
+                "name": new_user.name,
+                "email": new_user.email
             },
             "token": token
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/auth/signin")
-async def signin(request: AuthSignInRequest):
+async def signin(request: AuthSignInRequest, db: Session = Depends(get_db)):
     """User signin endpoint."""
     try:
         # Check if user exists
-        if request.email not in users_db:
+        user = db.query(User).filter(User.email == request.email).first()
+        if not user:
             return {
                 "status": "error",
                 "message": "Invalid email or password"
             }
         
-        user = users_db[request.email]
-        
         # Verify password
-        if user["password"] != hash_password(request.password):
+        if not verify_password(request.password, user.password_hash):
             return {
                 "status": "error",
                 "message": "Invalid email or password"
@@ -186,30 +195,37 @@ async def signin(request: AuthSignInRequest):
         
         # Generate auth token
         token = generate_token()
-        sessions_db[token] = {
-            "email": request.email,
-            "created_at": datetime.now().isoformat()
-        }
+        new_session = DBSession(
+            token=token,
+            user_id=user.id,
+            email=user.email
+        )
+        db.add(new_session)
+        db.commit()
         
         return {
             "status": "success",
             "user": {
-                "name": user["name"],
-                "email": user["email"]
+                "name": user.name,
+                "email": user.email
             },
             "token": token
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/auth/logout")
-async def logout(token: str):
+async def logout(token: str, db: Session = Depends(get_db)):
     """User logout endpoint."""
     try:
-        if token in sessions_db:
-            del sessions_db[token]
+        session = db.query(DBSession).filter(DBSession.token == token).first()
+        if session:
+            db.delete(session)
+            db.commit()
         return {"status": "success"}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/plan", response_model=TravelResponse)
