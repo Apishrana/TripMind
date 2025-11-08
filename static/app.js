@@ -632,6 +632,7 @@ async function extractAndCreateBooking(aiResponse, userMessage) {
 function openBookingWithDetails() {
     // Open booking page with trip details from chat
     if (window.lastTripDetails) {
+        console.log('Opening booking with trip details:', window.lastTripDetails);
         bookingTripDetails = window.lastTripDetails;
         selectedFlight = null;
         selectedHotel = null;
