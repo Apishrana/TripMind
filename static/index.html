@@ -6,6 +6,11 @@
     <title>Travel Planner AI - Your Autonomous Travel Assistant</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>">
     <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/booking-styles.css">
+    <link rel="stylesheet" href="/static/calendar-styles.css">
+    <link rel="stylesheet" href="/static/calendar-dynamic.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.js"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -19,8 +24,11 @@
                 <li class="nav-link" data-page="plan" onclick="navigateTo('plan')">Plan Trip</li>
                 <li class="nav-link" data-page="calendar" onclick="navigateTo('calendar')">📅 Calendar</li>
                 <li class="nav-link" data-page="trips" onclick="navigateTo('trips')">My Trips</li>
-                <li class="nav-link nav-booking" data-page="trips" onclick="navigateTo('trips'); setTimeout(() => loadMyTrips(), 300);" style="background: var(--gradient-1); color: white; border-radius: 25px; padding: 0.5rem 1.5rem; font-weight: 600;">💳 Book Now</li>
+                <li class="nav-link nav-booking" data-page="booking" onclick="openBookingPageFromChat()" style="background: var(--gradient-1); color: white; border-radius: 25px; padding: 0.5rem 1.5rem; font-weight: 600;">💳 Book Now</li>
                 <li class="nav-link" data-page="preferences" onclick="navigateTo('preferences')">Preferences</li>
+                <li class="nav-link theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                    <span id="theme-icon">🌙</span>
+                </li>
             </ul>
         </div>
     </nav>
@@ -168,19 +176,171 @@
 
     <!-- Calendar Page -->
     <div id="calendar-page" class="page">
-        <div class="container" style="padding: 3rem 2rem;">
-            <h2 class="section-title">📅 Travel Calendar</h2>
-            <p class="feature-desc" style="text-align: center; max-width: 700px; margin: 0 auto 3rem;">
-                View all your planned trips and itineraries in one place. Keep track of your travel schedule and never miss an adventure!
-            </p>
-            
-            <div id="calendar-loading" class="loading-container" style="display: none;">
-                <div class="loading-spinner-large"></div>
-                <p style="margin-top: 1rem; color: var(--gray);">Loading your itineraries...</p>
+        <div class="container" style="padding: 2rem;">
+            <!-- Calendar Header -->
+            <div class="calendar-page-header">
+                <div class="calendar-header-left">
+                    <h1 class="calendar-main-title">📅 Calendar</h1>
+                    <p class="calendar-subtitle">Manage your trips, bookings, and personal events</p>
+                </div>
+                <div class="calendar-header-actions">
+                    <button class="calendar-action-btn calendar-today-btn" onclick="goToToday()" title="Go to today">
+                        <span>Today</span>
+                    </button>
+                    <button class="calendar-action-btn calendar-add-btn" onclick="openEventModal()" title="Create event">
+                        <span>➕</span>
+                        <span>Create</span>
+                    </button>
+                </div>
             </div>
             
-            <div id="calendar-content">
-                <!-- Calendar grid will be populated here -->
+            <!-- Calendar View Selector -->
+            <div class="calendar-view-selector">
+                <button class="view-btn active" data-view="month" onclick="switchCalendarView('dayGridMonth')">
+                    <span>Month</span>
+                </button>
+                <button class="view-btn" data-view="week" onclick="switchCalendarView('timeGridWeek')">
+                    <span>Week</span>
+                </button>
+                <button class="view-btn" data-view="day" onclick="switchCalendarView('timeGridDay')">
+                    <span>Day</span>
+                </button>
+                <button class="view-btn" data-view="list" onclick="switchCalendarView('listWeek')">
+                    <span>List</span>
+                </button>
+            </div>
+            
+            <!-- Calendar Wrapper -->
+            <div id="calendar-wrapper" class="calendar-wrapper">
+                <div id="calendar-container" class="calendar-container"></div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="calendar-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="total-events-count">0</div>
+                        <div class="stat-label">Total Events</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✈️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="booking-events-count">0</div>
+                        <div class="stat-label">Bookings</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔔</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="upcoming-events-count">0</div>
+                        <div class="stat-label">Upcoming</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Creation/Edit Modal -->
+    <div id="event-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="event-modal-title">➕ Create New Event</h3>
+                <button class="modal-close" onclick="closeEventModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="event-form" onsubmit="saveEvent(event)">
+                    <div class="form-group">
+                        <label>Event Title *</label>
+                        <input type="text" id="event-title" class="form-input" required placeholder="e.g., Goa Trip, Team Meeting">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="event-description" class="form-input" rows="3" placeholder="Add notes or details about this event..."></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Start Date *</label>
+                            <input type="date" id="event-start-date" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label>End Date *</label>
+                            <input type="date" id="event-end-date" class="form-input" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="event-all-day" checked onchange="toggleEventTime()">
+                            All Day Event
+                        </label>
+                    </div>
+                    
+                    <div id="event-time-fields" style="display: none; grid-template-columns: 1fr 1fr; gap: 1rem; display: grid;">
+                        <div class="form-group">
+                            <label>Start Time</label>
+                            <input type="time" id="event-start-time" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>End Time</label>
+                            <input type="time" id="event-end-time" class="form-input">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select id="event-type" class="form-input" onchange="updateEventColor()">
+                            <option value="personal">Personal</option>
+                            <option value="trip">Trip</option>
+                            <option value="booking">Booking</option>
+                            <option value="reminder">Reminder</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" id="event-tags" class="form-input" placeholder="e.g., Trip, Reminder, Personal">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Color</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="color" id="event-color" class="form-input" value="#6366f1" style="width: 60px; height: 40px; padding: 0;">
+                            <input type="text" id="event-color-text" class="form-input" value="#6366f1" style="flex: 1;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="event-reminder">
+                            Enable Reminder
+                        </label>
+                    </div>
+                    
+                    <div id="reminder-options" style="display: none;">
+                        <div class="form-group">
+                            <label>Reminder Time</label>
+                            <select id="event-reminder-time" class="form-input">
+                                <option value="15 minutes before">15 minutes before</option>
+                                <option value="30 minutes before">30 minutes before</option>
+                                <option value="1 hour before">1 hour before</option>
+                                <option value="2 hours before">2 hours before</option>
+                                <option value="1 day before">1 day before</option>
+                                <option value="2 days before">2 days before</option>
+                                <option value="1 week before">1 week before</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Save Event</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeEventModal()" style="flex: 1;">Cancel</button>
+                        <button type="button" id="event-delete-btn" class="btn btn-delete" onclick="deleteEvent()" style="display: none;">🗑️ Delete</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -252,6 +412,147 @@
                             🚀 Start Planning
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Page -->
+    <div id="booking-page" class="page">
+        <div class="container" style="padding: 2rem; padding-bottom: 120px;">
+            <div style="margin-bottom: 2rem;">
+                <button class="btn btn-secondary" onclick="navigateTo('plan')" style="margin-bottom: 1rem;">
+                    ← Back to Planning
+                </button>
+                <h2 class="section-title">Complete Your Booking</h2>
+                <p class="feature-desc" id="booking-summary">Select your flights and hotel to complete your booking</p>
+            </div>
+
+            <!-- Booking Details Summary -->
+            <div class="booking-summary-card" id="booking-details-card" style="display: none;">
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">📋 Trip Summary</h3>
+                <div class="booking-summary-content" id="booking-summary-content"></div>
+            </div>
+
+            <!-- Flight Selection Section -->
+            <div class="booking-section">
+                <h3 class="booking-section-title">✈️ Select Your Flight</h3>
+                <div id="flights-container" class="options-container">
+                    <div class="loading-container">
+                        <div class="loading-spinner-large"></div>
+                        <p style="margin-top: 1rem; color: var(--gray);">Loading flight options...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hotel Selection Section -->
+            <div class="booking-section" style="margin-top: 3rem;">
+                <h3 class="booking-section-title">🏨 Select Your Hotel</h3>
+                <div id="hotels-container" class="options-container">
+                    <div class="loading-container">
+                        <div class="loading-spinner-large"></div>
+                        <p style="margin-top: 1rem; color: var(--gray);">Loading hotel options...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Passenger Details -->
+            <div class="booking-section" style="margin-top: 3rem;">
+                <h3 class="booking-section-title">👥 Passenger Details</h3>
+                <div class="passenger-form">
+                    <div class="form-group">
+                        <label>Number of Passengers</label>
+                        <input type="number" id="passenger-count" min="1" max="10" value="1" class="form-input" onchange="updateTotalPrice()">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="passenger-email" placeholder="your.email@example.com" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Special Requests (Optional)</label>
+                        <textarea id="special-requests" placeholder="Any special requests or preferences..." class="form-input" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Collapsible Price Summary Footer -->
+        <div class="price-summary-footer" id="price-summary-footer">
+            <div class="price-summary-toggle" onclick="togglePriceSummary()">
+                <div class="toggle-content">
+                    <span class="toggle-icon">💰</span>
+                    <span class="toggle-text">View Price Summary</span>
+                    <span class="toggle-total" id="footer-total-price">Total: $0.00</span>
+                </div>
+                <span class="toggle-arrow" id="price-summary-arrow">▼</span>
+            </div>
+            <div class="price-summary-content" id="price-summary-content">
+                <div class="price-summary-card">
+                    <h3 style="margin-bottom: 1rem; color: var(--primary);">💰 Price Summary</h3>
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Flight (per person)</span>
+                            <div class="price-dropdown">
+                                <select id="flight-select" class="price-select" onchange="updateFlightPrice()">
+                                    <option value="">Select Flight</option>
+                                </select>
+                                <span id="flight-price" class="price-display">$0.00</span>
+                            </div>
+                        </div>
+                        <div class="price-row">
+                            <span>Hotel (per night)</span>
+                            <div class="price-dropdown">
+                                <select id="hotel-select" class="price-select" onchange="updateHotelPrice()">
+                                    <option value="">Select Hotel</option>
+                                </select>
+                                <span id="hotel-price" class="price-display">$0.00</span>
+                            </div>
+                        </div>
+                        <div class="price-row">
+                            <span>Number of Nights</span>
+                            <div class="price-dropdown">
+                                <select id="nights-select" class="price-select" onchange="updateTotalPrice()">
+                                    <option value="1">1 Night</option>
+                                    <option value="2">2 Nights</option>
+                                    <option value="3">3 Nights</option>
+                                    <option value="4">4 Nights</option>
+                                    <option value="5">5 Nights</option>
+                                    <option value="6">6 Nights</option>
+                                    <option value="7">7 Nights</option>
+                                    <option value="8">8 Nights</option>
+                                    <option value="9">9 Nights</option>
+                                    <option value="10">10 Nights</option>
+                                </select>
+                                <span id="nights-count" class="price-display">0</span>
+                            </div>
+                        </div>
+                        <div class="price-row">
+                            <span>Number of Passengers</span>
+                            <div class="price-dropdown">
+                                <select id="passengers-select" class="price-select" onchange="updateTotalPrice()">
+                                    <option value="1">1 Passenger</option>
+                                    <option value="2">2 Passengers</option>
+                                    <option value="3">3 Passengers</option>
+                                    <option value="4">4 Passengers</option>
+                                    <option value="5">5 Passengers</option>
+                                    <option value="6">6 Passengers</option>
+                                    <option value="7">7 Passengers</option>
+                                    <option value="8">8 Passengers</option>
+                                    <option value="9">9 Passengers</option>
+                                    <option value="10">10 Passengers</option>
+                                </select>
+                                <span id="passengers-count" class="price-display">1</span>
+                            </div>
+                        </div>
+                        <div class="price-row total-row">
+                            <span><strong>Total Price</strong></span>
+                            <span id="total-price" class="total-price-display"><strong>$0.00</strong></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="proceed-booking-btn" onclick="proceedToBooking()" style="width: 100%; margin-top: 1.5rem; padding: 1.2rem;" disabled>
+                        💳 Proceed to Payment
+                    </button>
                 </div>
             </div>
         </div>

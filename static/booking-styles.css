@@ -1,0 +1,516 @@
+/* Booking Page Styles - MakeMyTrip-like design */
+
+/* Price Dropdown Styles */
+.price-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.price-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: white;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 200px;
+}
+
+.price-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.price-display {
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 80px;
+    text-align: right;
+}
+
+.total-price-display {
+    font-size: 1.3rem;
+    color: var(--primary);
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] {
+    --dark: #f8fafc;
+    --light: #1e293b;
+    --gray: #94a3b8;
+    background: #0f172a;
+    color: var(--dark);
+}
+
+[data-theme="dark"] .booking-section,
+[data-theme="dark"] .price-summary-card,
+[data-theme="dark"] .booking-summary-card,
+[data-theme="dark"] .flight-option,
+[data-theme="dark"] .hotel-option {
+    background: #1e293b;
+    color: var(--dark);
+    border-color: #334155;
+}
+
+[data-theme="dark"] .price-select,
+[data-theme="dark"] .form-input {
+    background: #334155;
+    border-color: #475569;
+    color: var(--dark);
+}
+
+[data-theme="dark"] .navbar {
+    background: rgba(30, 41, 59, 0.95);
+    border-bottom-color: #334155;
+}
+
+[data-theme="dark"] .nav-link {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary);
+}
+
+[data-theme="dark"] .theme-toggle {
+    background: rgba(99, 102, 241, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    background: rgba(99, 102, 241, 0.3);
+    transform: scale(1.1);
+}
+
+.booking-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.booking-section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.flight-option, .hotel-option {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+}
+
+.flight-option:hover, .hotel-option:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.flight-option.selected, .hotel-option.selected {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+}
+
+.flight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.flight-airline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.flight-number {
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.flight-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.flight-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flight-time {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.flight-time > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.flight-time strong {
+    font-size: 1.2rem;
+    color: var(--dark);
+}
+
+.flight-city {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 0.25rem;
+}
+
+.flight-duration {
+    color: var(--gray);
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+}
+
+.flight-info {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.hotel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.hotel-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.hotel-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--dark);
+    font-weight: 600;
+}
+
+.hotel-reviews {
+    font-size: 0.85rem;
+    color: var(--gray);
+    font-weight: 400;
+}
+
+.hotel-price {
+    text-align: right;
+}
+
+.price-per-night {
+    font-size: 1.1rem;
+    color: var(--gray);
+    margin-bottom: 0.25rem;
+}
+
+.price-total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.hotel-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.hotel-location {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+.hotel-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.amenity-badge {
+    padding: 0.3rem 0.8rem;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.booking-summary-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.price-summary-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Collapsible Price Summary Footer */
+.price-summary-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    border-top: 2px solid var(--primary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.price-summary-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    background: var(--gradient-1);
+    color: white;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.price-summary-toggle:hover {
+    background: linear-gradient(135deg, #7c8ef5 0%, #8a5db8 100%);
+}
+
+.toggle-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.toggle-icon {
+    font-size: 1.5rem;
+}
+
+.toggle-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.toggle-total {
+    margin-left: auto;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.toggle-arrow {
+    font-size: 1.2rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-left: 1rem;
+}
+
+.price-summary-footer.expanded .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+.price-summary-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+}
+
+.price-summary-footer.expanded .price-summary-content {
+    max-height: 800px;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.price-summary-content .price-summary-card {
+    margin: 0;
+    box-shadow: none;
+    border: none;
+}
+
+/* Dark mode for footer */
+[data-theme="dark"] .price-summary-footer {
+    background: #1e293b;
+    border-top-color: var(--primary);
+}
+
+[data-theme="dark"] .price-summary-content {
+    background: #1e293b;
+}
+
+[data-theme="dark"] .price-summary-content .price-summary-card {
+    background: #334155;
+    color: var(--dark);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .price-summary-toggle {
+        padding: 0.75rem 1rem;
+    }
+    
+    .toggle-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .toggle-text {
+        font-size: 1rem;
+    }
+    
+    .toggle-total {
+        margin-left: 0;
+        font-size: 1rem;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .price-summary-footer.expanded .price-summary-content {
+        padding: 1rem;
+        max-height: 70vh;
+    }
+    
+    .price-dropdown {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .price-select {
+        min-width: 100%;
+    }
+    
+    .price-display {
+        text-align: left;
+    }
+}
+
+.price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 1rem;
+}
+
+.price-row > span:first-child {
+    font-weight: 500;
+    min-width: 150px;
+}
+
+.price-row.total-row {
+    border-top: 2px solid var(--primary);
+    border-bottom: none;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.passenger-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.form-input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+@media (max-width: 768px) {
+    .flight-time {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hotel-header {
+        flex-direction: column;
+    }
+    
+    .hotel-price {
+        text-align: left;
+    }
+    
+    .price-summary-card {
+        position: relative;
+        top: 0;
+    }
+}
+

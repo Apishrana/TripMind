@@ -1,0 +1,291 @@
+/* FullCalendar Custom Styling */
+#calendar-container {
+    width: 100%;
+    min-height: 600px;
+}
+
+.fc {
+    font-family: inherit;
+    background: transparent;
+}
+
+.fc-header-toolbar {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(236, 72, 153, 0.08) 100%);
+    border-radius: 15px;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.fc-button {
+    background: var(--primary) !important;
+    border: none !important;
+    padding: 0.6rem 1.2rem !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-transform: capitalize !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2) !important;
+    color: white !important;
+}
+
+.fc-button:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4) !important;
+}
+
+.fc-button:active {
+    transform: translateY(0) !important;
+}
+
+.fc-button-primary:not(:disabled):active,
+.fc-button-primary:not(:disabled).fc-button-active {
+    background: var(--primary-dark) !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3) !important;
+}
+
+.fc-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: var(--dark) !important;
+}
+
+.fc-daygrid-day {
+    background: white;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.fc-daygrid-day:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+    transform: scale(1.01);
+}
+
+.fc-day-today {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(236, 72, 153, 0.08) 100%) !important;
+    border: 2px solid var(--primary) !important;
+    box-shadow: inset 0 0 10px rgba(99, 102, 241, 0.1);
+}
+
+.fc-daygrid-day-number {
+    padding: 0.5rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fc-event {
+    border-radius: 8px !important;
+    padding: 6px 10px !important;
+    cursor: pointer !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+    margin: 3px 2px !important;
+    backdrop-filter: blur(4px);
+    position: relative;
+    overflow: hidden;
+}
+
+.fc-event::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.fc-event:hover {
+    transform: translateY(-3px) scale(1.03) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3) !important;
+    z-index: 10 !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.fc-event:active {
+    transform: translateY(-1px) scale(1.01) !important;
+}
+
+.fc-event-title {
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.fc-event-title {
+    font-weight: 600;
+}
+
+.fc-daygrid-event {
+    margin: 2px 4px !important;
+}
+
+.fc-timegrid-slot {
+    border-color: #e2e8f0;
+}
+
+.fc-timegrid-col {
+    border-color: #e2e8f0;
+}
+
+.fc-col-header-cell {
+    background: rgba(99, 102, 241, 0.05);
+    padding: 0.75rem 0;
+    font-weight: 600;
+    color: var(--dark);
+    border-color: #e2e8f0;
+}
+
+.fc-scrollgrid {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.fc-daygrid-event-dot {
+    display: none;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .fc {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .fc-daygrid-day {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .fc-daygrid-day:hover {
+    background: rgba(99, 102, 241, 0.15) !important;
+}
+
+[data-theme="dark"] .fc-day-today {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(236, 72, 153, 0.15) 100%) !important;
+    border: 2px solid var(--primary) !important;
+}
+
+[data-theme="dark"] .fc-day-today .fc-daygrid-day-number {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .fc-daygrid-day-number {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .fc-toolbar-title {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .fc-col-header-cell {
+    background: #334155 !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+[data-theme="dark"] .fc-header-toolbar {
+    background: rgba(99, 102, 241, 0.15) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+[data-theme="dark"] .fc-timegrid-slot,
+[data-theme="dark"] .fc-timegrid-col {
+    border-color: #475569 !important;
+}
+
+[data-theme="dark"] .fc-timegrid-slot-label {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .fc-timegrid-axis {
+    color: #cbd5e1 !important;
+    border-color: #475569 !important;
+}
+
+[data-theme="dark"] .fc-list-day-cushion {
+    background: #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .fc-list-event {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .fc-list-event:hover {
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+
+[data-theme="dark"] .fc-scrollgrid {
+    border-color: #475569 !important;
+}
+
+/* Calendar wrapper dark mode */
+[data-theme="dark"] #calendar-wrapper {
+    background: #1e293b !important;
+    border: 1px solid #334155;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .fc-header-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem !important;
+    }
+    
+    .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .fc-button {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.2rem !important;
+    }
+    
+    #calendar-wrapper {
+        padding: 1rem !important;
+    }
+}
+
+/* Additional smooth transitions */
+.fc-scrollgrid-section {
+    transition: background-color 0.3s ease;
+}
+
+.fc-daygrid-day-frame {
+    transition: all 0.2s ease;
+}
+
+/* Loading state */
+.fc-loading {
+    opacity: 0.6;
+}
+

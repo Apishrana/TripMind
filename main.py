@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 import json
 from sqlalchemy.orm import Session
-from database import init_db, get_db, Itinerary, Booking
+from database import init_db, get_db, Itinerary, Booking, CalendarEvent
 
 # Initialize FastAPI app
 app = FastAPI(title="Travel Planner AI Agent")
@@ -68,6 +68,21 @@ class BookingRequest(BaseModel):
 class PaymentRequest(BaseModel):
     booking_id: str
     amount: float
+
+class CalendarEventRequest(BaseModel):
+    title: str
+    description: Optional[str] = None
+    start_date: str
+    end_date: str
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    all_day: Optional[str] = "true"
+    event_type: Optional[str] = "personal"
+    tags: Optional[List[str]] = None
+    color: Optional[str] = None
+    booking_id: Optional[str] = None
+    reminder_enabled: Optional[str] = "false"
+    reminder_time: Optional[str] = None
 
 class ItineraryRequest(BaseModel):
     trip_name: str
@@ -150,6 +165,185 @@ async def get_preferences():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/booking-options")
+async def get_booking_options(request: Dict[str, Any] = None):
+    """Extract flight and hotel options from conversation history or provided trip details."""
+    try:
+        # Get trip details from request or conversation history
+        destination = None
+        origin = "Mumbai"  # Default origin
+        start_date = None
+        end_date = None
+        budget = None
+        passengers = 1
+        
+        if request and request.get("trip_details"):
+            # Use provided trip details
+            trip = request["trip_details"]
+            destination = trip.get("destination")
+            origin = trip.get("origin", "Mumbai")
+            start_date = trip.get("start_date")
+            end_date = trip.get("end_date")
+            budget = trip.get("budget")
+            passengers = trip.get("passengers", 1)
+        elif agent is not None:
+            # Extract from conversation history
+            history = agent.get_conversation_history()
+            import re
+            for entry in history:
+                content = entry.get("content", "")
+                
+                # Extract dates
+                date_pattern = r'\d{4}-\d{2}-\d{2}'
+                dates = re.findall(date_pattern, content)
+                if dates:
+                    if not start_date:
+                        start_date = dates[0]
+                    if len(dates) > 1:
+                        end_date = dates[1]
+                    elif not end_date:
+                        end_date = dates[0]
+                
+                # Extract destination
+                dest_patterns = [
+                    r'(?:destination|going to|visit|trip to|travel to)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)',
+                    r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+(?:trip|vacation|getaway)',
+                ]
+                for pattern in dest_patterns:
+                    dest_match = re.search(pattern, content, re.IGNORECASE)
+                    if dest_match and not destination:
+                        destination = dest_match.group(1)
+                        break
+                
+                # Extract budget
+                budget_match = re.search(r'\$(\d+(?:\.\d{2})?)', content)
+                if budget_match and not budget:
+                    budget = float(budget_match.group(1))
+                
+                # Extract passengers
+                passenger_match = re.search(r'(\d+)\s*(?:passenger|person|people|guest)', content, re.IGNORECASE)
+                if passenger_match and passengers == 1:
+                    passengers = int(passenger_match.group(1))
+        
+        # Use defaults if not found
+        if not destination:
+            destination = "Goa"
+        if not start_date:
+            from datetime import datetime, timedelta
+            start_date = (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d")
+        if not end_date:
+            from datetime import datetime, timedelta
+            end_date = (datetime.now() + timedelta(days=14)).strftime("%Y-%m-%d")
+        if not budget:
+            budget = 1000.0
+        
+        # Get flight options using the agent's search_flights tool
+        flights_data = []
+        hotels_data = []
+        
+        if agent is not None:
+            from agent.travel_agent import search_flights, search_hotels
+            import json
+            
+            # Search flights
+            flight_budget = budget * 0.4  # Allocate 40% of budget to flights
+            flights_result = search_flights(origin, destination, start_date, flight_budget / passengers)
+            flights_json = json.loads(flights_result)
+            flights_data = flights_json.get("flights", [])
+            
+            # Search hotels
+            hotel_budget = budget * 0.4  # Allocate 40% of budget to hotels per night
+            num_nights = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
+            hotels_result = search_hotels(destination, start_date, end_date, hotel_budget / num_nights if num_nights > 0 else hotel_budget)
+            hotels_json = json.loads(hotels_result)
+            hotels_data = hotels_json.get("hotels", [])
+        else:
+            # Fallback: Generate sample flights and hotels
+            flights_data = [
+                {
+                    "airline": "Air India",
+                    "flight_number": "AI202",
+                    "departure_time": "08:00",
+                    "arrival_time": "10:30",
+                    "duration": "2h 30m",
+                    "price": min(budget * 0.3, 450),
+                    "stops": 0,
+                    "class": "Economy"
+                },
+                {
+                    "airline": "IndiGo",
+                    "flight_number": "6E345",
+                    "departure_time": "14:00",
+                    "arrival_time": "16:45",
+                    "duration": "2h 45m",
+                    "price": min(budget * 0.25, 350),
+                    "stops": 0,
+                    "class": "Economy"
+                },
+                {
+                    "airline": "SpiceJet",
+                    "flight_number": "SG890",
+                    "departure_time": "18:30",
+                    "arrival_time": "21:15",
+                    "duration": "2h 45m",
+                    "price": min(budget * 0.2, 320),
+                    "stops": 0,
+                    "class": "Economy"
+                }
+            ]
+            
+            num_nights = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
+            hotels_data = [
+                {
+                    "name": "Beach Paradise Resort",
+                    "rating": 4.5,
+                    "price_per_night": min(budget * 0.3 / num_nights if num_nights > 0 else budget * 0.3, 120),
+                    "location": "Beachfront",
+                    "amenities": ["Pool", "WiFi", "Breakfast", "Spa", "Beach Access"],
+                    "reviews": 1250,
+                    "style": "luxury"
+                },
+                {
+                    "name": "Cozy Inn & Suites",
+                    "rating": 4.2,
+                    "price_per_night": min(budget * 0.2 / num_nights if num_nights > 0 else budget * 0.2, 80),
+                    "location": "City Center",
+                    "amenities": ["WiFi", "Breakfast", "Parking", "Gym"],
+                    "reviews": 890,
+                    "style": "mid-range"
+                },
+                {
+                    "name": "Budget Stay Hotel",
+                    "rating": 3.8,
+                    "price_per_night": min(budget * 0.15 / num_nights if num_nights > 0 else budget * 0.15, 50),
+                    "location": "Near Beach",
+                    "amenities": ["WiFi", "AC", "24/7 Reception"],
+                    "reviews": 456,
+                    "style": "budget-friendly"
+                }
+            ]
+        
+        return {
+            "status": "success",
+            "trip_details": {
+                "origin": origin,
+                "destination": destination,
+                "start_date": start_date,
+                "end_date": end_date,
+                "budget": budget,
+                "passengers": passengers
+            },
+            "flights": flights_data,
+            "hotels": hotels_data
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "flights": [],
+            "hotels": []
+        }
 
 @app.post("/api/bookings")
 async def create_booking(booking: BookingRequest, db: Session = Depends(get_db)):
@@ -724,6 +918,254 @@ async def create_booking_from_itinerary(itinerary_id: int, passengers: int = 1, 
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "Travel Planner AI Agent"}
+
+# Calendar Events API Endpoints
+@app.get("/api/calendar/events")
+async def get_calendar_events(start: Optional[str] = None, end: Optional[str] = None, db: Session = Depends(get_db)):
+    """Get all calendar events, optionally filtered by date range."""
+    try:
+        # Get all calendar events
+        all_events = db.query(CalendarEvent).all()
+        
+        # Also get bookings and convert them to calendar events
+        bookings = db.query(Booking).filter(Booking.status.in_(["pending", "confirmed"])).all()
+        
+        events = []
+        
+        # Add manual calendar events
+        for event in all_events:
+            # Determine color based on event type
+            color = event.color
+            if not color:
+                if event.event_type == "booking":
+                    color = "#3b82f6"  # Blue for bookings
+                elif event.event_type == "trip":
+                    color = "#10b981"  # Green for trips
+                elif event.event_type == "reminder":
+                    color = "#f59e0b"  # Yellow for reminders
+                else:
+                    color = "#6366f1"  # Purple for personal
+            
+            # Format start and end dates properly
+            start_str = event.start_date
+            end_str = event.end_date
+            
+            # Add time if not all-day and time is provided
+            if event.start_time and event.all_day != "true":
+                start_str = f"{event.start_date}T{event.start_time}:00"
+            if event.end_time and event.all_day != "true":
+                end_str = f"{event.end_date}T{event.end_time}:00"
+            
+            events.append({
+                "id": f"event_{event.id}",
+                "title": event.title or "Untitled Event",
+                "description": event.description or "",
+                "start": start_str,
+                "end": end_str,
+                "allDay": event.all_day == "true",
+                "backgroundColor": color,
+                "borderColor": color,
+                "textColor": "#ffffff",
+                "extendedProps": {
+                    "event_type": event.event_type or "personal",
+                    "tags": event.tags if event.tags else [],
+                    "booking_id": event.booking_id,
+                    "reminder_enabled": event.reminder_enabled == "true",
+                    "reminder_time": event.reminder_time,
+                    "database_id": event.id
+                }
+            })
+        
+        # Add booking events
+        for booking in bookings:
+            status_color = {
+                "pending": "#f59e0b",  # Yellow
+                "confirmed": "#10b981",  # Green
+                "cancelled": "#ef4444",  # Red
+                "completed": "#6b7280"  # Gray
+            }.get(booking.status, "#6366f1")
+            
+            events.append({
+                "id": f"booking_{booking.booking_id}",
+                "title": f"✈️ {booking.trip_name}",
+                "description": f"Destination: {booking.destination}\nPassengers: {booking.passengers}\nStatus: {booking.status.title()}",
+                "start": booking.start_date,
+                "end": booking.end_date,
+                "allDay": True,
+                "backgroundColor": status_color,
+                "borderColor": status_color,
+                "textColor": "#ffffff",
+                "extendedProps": {
+                    "event_type": "booking",
+                    "booking_id": booking.booking_id,
+                    "status": booking.status,
+                    "destination": booking.destination,
+                    "is_booking": True
+                }
+            })
+        
+        return {
+            "status": "success",
+            "events": events
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/calendar/events")
+async def create_calendar_event(event: CalendarEventRequest, db: Session = Depends(get_db)):
+    """Create a new calendar event."""
+    try:
+        # Validate required fields
+        if not event.title or not event.title.strip():
+            return {
+                "status": "error",
+                "error": "Event title is required"
+            }
+        
+        if not event.start_date or not event.end_date:
+            return {
+                "status": "error",
+                "error": "Start date and end date are required"
+            }
+        
+        # Validate date format
+        try:
+            from datetime import datetime
+            datetime.strptime(event.start_date, "%Y-%m-%d")
+            datetime.strptime(event.end_date, "%Y-%m-%d")
+        except ValueError:
+            return {
+                "status": "error",
+                "error": "Invalid date format. Please use YYYY-MM-DD format"
+            }
+        
+        # Determine color based on event type if not provided
+        color = event.color
+        if not color:
+            if event.event_type == "booking":
+                color = "#3b82f6"
+            elif event.event_type == "trip":
+                color = "#10b981"
+            elif event.event_type == "reminder":
+                color = "#f59e0b"
+            else:
+                color = "#6366f1"
+        
+        db_event = CalendarEvent(
+            title=event.title.strip(),
+            description=event.description,
+            start_date=event.start_date,
+            end_date=event.end_date,
+            start_time=event.start_time,
+            end_time=event.end_time,
+            all_day=event.all_day or "true",
+            event_type=event.event_type or "personal",
+            tags=event.tags or [],
+            color=color,
+            booking_id=event.booking_id,
+            reminder_enabled=event.reminder_enabled or "false",
+            reminder_time=event.reminder_time
+        )
+        
+        db.add(db_event)
+        db.commit()
+        db.refresh(db_event)
+        
+        return {
+            "status": "success",
+            "event_id": db_event.id,
+            "message": "Event created successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_msg = str(e)
+        print(f"Error creating calendar event: {error_msg}")
+        print(traceback.format_exc())
+        return {
+            "status": "error",
+            "error": f"Failed to create event: {error_msg}"
+        }
+
+@app.put("/api/calendar/events/{event_id}")
+async def update_calendar_event(event_id: int, event: CalendarEventRequest, db: Session = Depends(get_db)):
+    """Update an existing calendar event."""
+    try:
+        db_event = db.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
+        if not db_event:
+            return {
+                "status": "error",
+                "error": "Event not found"
+            }
+        
+        # Validate required fields
+        if not event.title or not event.title.strip():
+            return {
+                "status": "error",
+                "error": "Event title is required"
+            }
+        
+        db_event.title = event.title.strip()
+        db_event.description = event.description
+        db_event.start_date = event.start_date
+        db_event.end_date = event.end_date
+        db_event.start_time = event.start_time
+        db_event.end_time = event.end_time
+        db_event.all_day = event.all_day or "true"
+        db_event.event_type = event.event_type or db_event.event_type
+        db_event.tags = event.tags or db_event.tags
+        if event.color:
+            db_event.color = event.color
+        db_event.reminder_enabled = event.reminder_enabled or db_event.reminder_enabled
+        db_event.reminder_time = event.reminder_time
+        db_event.updated_at = datetime.utcnow()
+        
+        db.commit()
+        db.refresh(db_event)
+        
+        return {
+            "status": "success",
+            "message": "Event updated successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_msg = str(e)
+        print(f"Error updating calendar event: {error_msg}")
+        print(traceback.format_exc())
+        return {
+            "status": "error",
+            "error": f"Failed to update event: {error_msg}"
+        }
+
+@app.delete("/api/calendar/events/{event_id}")
+async def delete_calendar_event(event_id: int, db: Session = Depends(get_db)):
+    """Delete a calendar event."""
+    try:
+        db_event = db.query(CalendarEvent).filter(CalendarEvent.id == event_id).first()
+        if not db_event:
+            return {
+                "status": "error",
+                "error": "Event not found"
+            }
+        
+        db.delete(db_event)
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Event deleted successfully"
+        }
+    except Exception as e:
+        db.rollback()
+        import traceback
+        error_msg = str(e)
+        print(f"Error deleting calendar event: {error_msg}")
+        print(traceback.format_exc())
+        return {
+            "status": "error",
+            "error": f"Failed to delete event: {error_msg}"
+        }
 
 if __name__ == "__main__":
     # Run the server on 0.0.0.0:5000 for Replit

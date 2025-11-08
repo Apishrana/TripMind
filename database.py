@@ -66,6 +66,27 @@ class Booking(Base):
     cancelled_at = Column(DateTime)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+class CalendarEvent(Base):
+    __tablename__ = "calendar_events"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, default="default_user", index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    start_date = Column(String, nullable=False)
+    end_date = Column(String, nullable=False)
+    start_time = Column(String)  # Optional time in HH:MM format
+    end_time = Column(String)  # Optional time in HH:MM format
+    all_day = Column(String, default="true")  # "true" or "false" as string
+    event_type = Column(String, default="personal")  # personal, trip, booking, reminder
+    tags = Column(JSON)  # Array of tag strings
+    color = Column(String, default="#6366f1")  # Hex color code
+    booking_id = Column(String)  # Link to booking if applicable
+    reminder_enabled = Column(String, default="false")  # "true" or "false"
+    reminder_time = Column(String)  # e.g., "1 day before", "1 hour before"
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 def init_db():
     Base.metadata.create_all(bind=engine)
 

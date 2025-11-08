@@ -1,4 +1,7 @@
 let currentPage = 'home';
+let selectedFlight = null;
+let selectedHotel = null;
+let bookingTripDetails = null;
 
 function navigateTo(page) {
     // Add fade out animation
@@ -32,6 +35,22 @@ function navigateTo(page) {
                 loadMyTrips();
             } else if (page === 'calendar') {
                 loadCalendar();
+            } else if (page === 'booking') {
+                // Show price summary footer on booking page
+                const footer = document.getElementById("price-summary-footer");
+                if (footer) {
+                    footer.style.display = "block";
+                }
+                if (!bookingTripDetails) {
+                    // If booking page opened without trip details, try to load from chat
+                    openBookingPageFromChat();
+                }
+            } else {
+                // Hide price summary footer on other pages
+                const footer = document.getElementById("price-summary-footer");
+                if (footer) {
+                    footer.style.display = "none";
+                }
             }
         }, currentActivePage ? 300 : 0);
     }
@@ -534,74 +553,504 @@ function closeModal(modalId) {
     modal.classList.remove('active');
 }
 
+let calendar = null;
+let currentEditingEvent = null;
+
 async function loadCalendar() {
-    const loadingDiv = document.getElementById('calendar-loading');
-    const contentDiv = document.getElementById('calendar-content');
+    const calendarEl = document.getElementById('calendar-container');
+    if (!calendarEl) return;
     
-    loadingDiv.style.display = 'flex';
-    contentDiv.innerHTML = '';
-    
-    try {
-        const response = await fetch('/api/itineraries');
-        const data = await response.json();
-        
-        loadingDiv.style.display = 'none';
-        
-        if (data.status === 'success' && data.itineraries && data.itineraries.length > 0) {
-            let html = '<div class="calendar-grid">';
-            
-            data.itineraries.forEach(itin => {
-                const startDate = new Date(itin.start_date);
-                const endDate = new Date(itin.end_date);
-                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    // Initialize FullCalendar if not already done
+    if (!calendar) {
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: ''
+            },
+            editable: true,
+            droppable: false,
+            selectable: true,
+            selectMirror: true,
+            dayMaxEvents: true,
+            weekends: true,
+            navLinks: true,
+            eventClick: function(info) {
+                openEventModalForEdit(info.event);
+            },
+            dateClick: function(info) {
+                openEventModalForDate(info.dateStr);
+            },
+            eventDrop: function(info) {
+                updateEventDates(info.event);
+            },
+            eventResize: function(info) {
+                updateEventDates(info.event);
+            },
+            events: async function(fetchInfo, successCallback, failureCallback) {
+                try {
+                    const response = await fetch(`/api/calendar/events?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}`);
+                    if (!response.ok) {
+                        console.error('HTTP error loading events:', response.status, response.statusText);
+                        failureCallback();
+                        return;
+                    }
+                    const data = await response.json();
+                    console.log('Events loaded:', data);
+                    if (data.status === 'success' && Array.isArray(data.events)) {
+                        console.log(`Loaded ${data.events.length} events`);
+                        successCallback(data.events);
+                    } else {
+                        console.error('Invalid response format:', data);
+                        failureCallback();
+                    }
+                } catch (error) {
+                    console.error('Error loading events:', error);
+                    failureCallback();
+                }
+            },
+            eventContent: function(info) {
+                const event = info.event;
+                const props = event.extendedProps || {};
+                const title = event.title || 'Untitled Event';
                 
-                html += `
-                    <div class="calendar-card">
-                        <div class="calendar-date">
-                            <div class="date-month">${monthNames[startDate.getMonth()]}</div>
-                            <div class="date-day">${startDate.getDate()}</div>
-                            <div class="date-year">${startDate.getFullYear()}</div>
-                        </div>
-                        <div class="calendar-content">
-                            <h3 class="trip-title">${itin.trip_name}</h3>
-                            <p class="trip-destination">📍 ${itin.destination}</p>
-                            <p class="trip-dates">📅 ${itin.start_date} to ${itin.end_date}</p>
-                            <p class="trip-duration">⏱️ ${itin.duration_days} days</p>
-                            ${itin.budget ? `<p class="trip-budget">💰 $${itin.budget.toFixed(2)}</p>` : ''}
-                            ${itin.description ? `<p class="trip-description">${itin.description}</p>` : ''}
-                            <div class="calendar-actions">
-                                <button class="btn-small btn-view" onclick="viewItinerary(${itin.id})">👁️ View Details</button>
-                                <button class="btn-small btn-primary" onclick="bookFromItinerary(${itin.id})" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">💳 Book Trip</button>
-                                <button class="btn-small btn-delete" onclick="deleteItinerary(${itin.id})">🗑️ Delete</button>
-                            </div>
-                        </div>
+                let icon = '';
+                if (props.is_booking) {
+                    icon = '✈️';
+                } else if (props.event_type === 'reminder') {
+                    icon = '🔔';
+                } else if (props.event_type === 'trip') {
+                    icon = '🗺️';
+                } else if (props.event_type === 'personal') {
+                    icon = '📌';
+                } else {
+                    icon = '📅';
+                }
+                
+                const html = `
+                    <div style="
+                        padding: 4px 6px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    ">
+                        <span>${icon}</span>
+                        <span>${title}</span>
                     </div>
                 `;
-            });
-            
-            html += '</div>';
-            contentDiv.innerHTML = html;
-        } else {
-            contentDiv.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">📅</div>
-                    <h3>No itineraries yet</h3>
-                    <p>Start planning trips with our AI assistant and they'll appear here!</p>
-                    <button class="btn btn-primary" onclick="navigateTo('plan')">🚀 Plan Your First Trip</button>
-                </div>
-            `;
-        }
-    } catch (error) {
-        loadingDiv.style.display = 'none';
-        contentDiv.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">❌</div>
-                <h3>Error loading itineraries</h3>
-                <p>${error.message}</p>
-            </div>
-        `;
+                
+                return { html: html };
+            },
+            eventDidMount: function(info) {
+                // Add hover tooltip with description
+                if (info.event.extendedProps && info.event.extendedProps.description) {
+                    info.el.setAttribute('title', info.event.extendedProps.description);
+                }
+            },
+            height: 'auto',
+            contentHeight: 'auto',
+            aspectRatio: 1.8,
+            loading: function(isLoading) {
+                if (isLoading) {
+                    calendarEl.classList.add('loading');
+                } else {
+                    calendarEl.classList.remove('loading');
+                    updateCalendarStats();
+                }
+            }
+        });
+        
+        calendar.render();
+        
+        // Hide loading state after render
+        setTimeout(() => {
+            calendarEl.classList.remove('loading');
+            updateCalendarStats();
+        }, 500);
+    } else {
+        // Refresh events
+        calendar.refetchEvents();
+        setTimeout(() => {
+            calendarEl.classList.remove('loading');
+            updateCalendarStats();
+        }, 500);
     }
 }
+
+// Switch calendar view
+function switchCalendarView(viewName) {
+    if (calendar) {
+        calendar.changeView(viewName);
+        // Update active button
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const viewMap = {
+            'dayGridMonth': 'month',
+            'timeGridWeek': 'week',
+            'timeGridDay': 'day',
+            'listWeek': 'list'
+        };
+        const activeBtn = document.querySelector(`.view-btn[data-view="${viewMap[viewName]}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+    }
+}
+
+// Go to today
+function goToToday() {
+    if (calendar) {
+        calendar.today();
+        calendar.refetchEvents();
+    }
+}
+
+// Update calendar statistics
+async function updateCalendarStats() {
+    try {
+        const response = await fetch('/api/calendar/events');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        if (data.status === 'success' && Array.isArray(data.events)) {
+            const events = data.events;
+            const now = new Date();
+            
+            // Total events
+            const totalEl = document.getElementById('total-events-count');
+            if (totalEl) {
+                animateValue(totalEl, 0, events.length, 500);
+            }
+            
+            // Booking events
+            const bookingCount = events.filter(e => e.extendedProps?.is_booking).length;
+            const bookingEl = document.getElementById('booking-events-count');
+            if (bookingEl) {
+                animateValue(bookingEl, 0, bookingCount, 500);
+            }
+            
+            // Upcoming events (within next 7 days)
+            const upcomingCount = events.filter(e => {
+                const startDate = new Date(e.start);
+                return startDate >= now && startDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+            }).length;
+            const upcomingEl = document.getElementById('upcoming-events-count');
+            if (upcomingEl) {
+                animateValue(upcomingEl, 0, upcomingCount, 500);
+            }
+        }
+    } catch (error) {
+        console.error('Error updating calendar stats:', error);
+    }
+}
+
+// Animate number counter
+function animateValue(element, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const current = Math.floor(progress * (end - start) + start);
+        element.textContent = current;
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            element.textContent = end;
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+function openEventModal() {
+    currentEditingEvent = null;
+    document.getElementById('event-modal-title').textContent = '➕ Create New Event';
+    document.getElementById('event-form').reset();
+    document.getElementById('event-all-day').checked = true;
+    document.getElementById('event-time-fields').style.display = 'none';
+    document.getElementById('event-reminder').checked = false;
+    document.getElementById('reminder-options').style.display = 'none';
+    document.getElementById('event-delete-btn').style.display = 'none';
+    document.getElementById('event-color').value = '#6366f1';
+    document.getElementById('event-color-text').value = '#6366f1';
+    
+    // Set default dates to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('event-start-date').value = today;
+    document.getElementById('event-end-date').value = today;
+    
+    document.getElementById('event-modal').classList.add('active');
+}
+
+function openEventModalForDate(dateStr) {
+    openEventModal();
+    document.getElementById('event-start-date').value = dateStr;
+    document.getElementById('event-end-date').value = dateStr;
+}
+
+function openEventModalForEdit(event) {
+    currentEditingEvent = event;
+    const props = event.extendedProps;
+    
+    // Only allow editing of manual events, not bookings
+    if (props.is_booking) {
+        alert('This is a booking event. Please edit it from the "My Trips" page.');
+        return;
+    }
+    
+    document.getElementById('event-modal-title').textContent = '✏️ Edit Event';
+    document.getElementById('event-title').value = event.title;
+    document.getElementById('event-description').value = event.extendedProps.description || '';
+    
+    const startDate = event.start;
+    const endDate = event.end || event.start;
+    
+    document.getElementById('event-start-date').value = startDate.toISOString().split('T')[0];
+    document.getElementById('event-end-date').value = endDate.toISOString().split('T')[0];
+    
+    const allDay = event.allDay;
+    document.getElementById('event-all-day').checked = allDay;
+    toggleEventTime();
+    
+    if (!allDay && startDate instanceof Date) {
+        const startTime = startDate.toTimeString().slice(0, 5);
+        const endTime = endDate.toTimeString().slice(0, 5);
+        document.getElementById('event-start-time').value = startTime;
+        document.getElementById('event-end-time').value = endTime;
+    }
+    
+    document.getElementById('event-type').value = props.event_type || 'personal';
+    document.getElementById('event-tags').value = (props.tags || []).join(', ');
+    document.getElementById('event-color').value = event.backgroundColor || '#6366f1';
+    document.getElementById('event-color-text').value = event.backgroundColor || '#6366f1';
+    
+    const reminderEnabled = props.reminder_enabled === true || props.reminder_enabled === 'true';
+    document.getElementById('event-reminder').checked = reminderEnabled;
+    if (reminderEnabled) {
+        document.getElementById('reminder-options').style.display = 'block';
+        document.getElementById('event-reminder-time').value = props.reminder_time || '1 day before';
+    }
+    
+    document.getElementById('event-delete-btn').style.display = 'block';
+    document.getElementById('event-modal').classList.add('active');
+}
+
+function toggleEventTime() {
+    const allDay = document.getElementById('event-all-day').checked;
+    const timeFields = document.getElementById('event-time-fields');
+    timeFields.style.display = allDay ? 'none' : 'grid';
+}
+
+function updateEventColor() {
+    const eventType = document.getElementById('event-type').value;
+    const colorMap = {
+        'personal': '#6366f1',
+        'trip': '#10b981',
+        'booking': '#3b82f6',
+        'reminder': '#f59e0b'
+    };
+    const color = colorMap[eventType] || '#6366f1';
+    document.getElementById('event-color').value = color;
+    document.getElementById('event-color-text').value = color;
+}
+
+async function saveEvent(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById('event-title').value;
+    const description = document.getElementById('event-description').value;
+    const startDate = document.getElementById('event-start-date').value;
+    const endDate = document.getElementById('event-end-date').value;
+    const allDay = document.getElementById('event-all-day').checked;
+    const startTime = allDay ? null : document.getElementById('event-start-time').value;
+    const endTime = allDay ? null : document.getElementById('event-end-time').value;
+    const eventType = document.getElementById('event-type').value;
+    const tags = document.getElementById('event-tags').value.split(',').map(t => t.trim()).filter(t => t);
+    const color = document.getElementById('event-color-text').value;
+    const reminderEnabled = document.getElementById('event-reminder').checked;
+    const reminderTime = reminderEnabled ? document.getElementById('event-reminder-time').value : null;
+    
+    const eventData = {
+        title: title,
+        description: description,
+        start_date: startDate,
+        end_date: endDate,
+        start_time: startTime,
+        end_time: endTime,
+        all_day: allDay ? "true" : "false",
+        event_type: eventType,
+        tags: tags,
+        color: color,
+        reminder_enabled: reminderEnabled ? "true" : "false",
+        reminder_time: reminderTime
+    };
+    
+    try {
+        let response;
+        if (currentEditingEvent && currentEditingEvent.extendedProps.database_id) {
+            // Update existing event
+            response = await fetch(`/api/calendar/events/${currentEditingEvent.extendedProps.database_id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            });
+        } else {
+            // Create new event
+            response = await fetch('/api/calendar/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            });
+        }
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('HTTP error saving event:', response.status, errorText);
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch {
+                errorData = { error: errorText || `HTTP ${response.status} error` };
+            }
+            alert('Error saving event: ' + (errorData.error || errorData.detail || `HTTP ${response.status} error`));
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('Event save response:', data);
+        if (data.status === 'success') {
+            showSuccessMessage('✅ Event saved successfully!');
+            closeEventModal();
+            // Force calendar refresh
+            if (calendar) {
+                setTimeout(() => {
+                    calendar.refetchEvents();
+                    updateCalendarStats();
+                }, 100);
+            }
+        } else {
+            const errorMsg = data.error || data.detail || 'Unknown error occurred';
+            console.error('Error saving event:', errorMsg, data);
+            alert('Error saving event: ' + errorMsg);
+        }
+    } catch (error) {
+        console.error('Error saving event:', error);
+        alert('Error saving event: ' + (error.message || 'Network error. Please check your connection.'));
+    }
+}
+
+async function deleteEvent() {
+    if (!currentEditingEvent || !currentEditingEvent.extendedProps.database_id) {
+        alert('Cannot delete this event');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this event?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/calendar/events/${currentEditingEvent.extendedProps.database_id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            showSuccessMessage('✅ Event deleted successfully!');
+            closeEventModal();
+            if (calendar) {
+                setTimeout(() => {
+                    calendar.refetchEvents();
+                    updateCalendarStats();
+                }, 100);
+            }
+        } else {
+            const errorMsg = data.error || data.detail || 'Unknown error occurred';
+            console.error('Error deleting event:', errorMsg, data);
+            alert('Error deleting event: ' + errorMsg);
+        }
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        alert('Error deleting event: ' + (error.message || 'Network error. Please check your connection.'));
+    }
+}
+
+async function updateEventDates(event) {
+    // Only update manual events, not bookings
+    if (event.extendedProps.is_booking || !event.extendedProps.database_id) {
+        calendar.refetchEvents(); // Revert the change
+        return;
+    }
+    
+    const start = event.start;
+    const end = event.end || event.start;
+    
+    const eventData = {
+        title: event.title,
+        description: event.extendedProps.description || '',
+        start_date: start.toISOString().split('T')[0],
+        end_date: end.toISOString().split('T')[0],
+        start_time: event.allDay ? null : start.toTimeString().slice(0, 5),
+        end_time: event.allDay ? null : (end.toTimeString().slice(0, 5)),
+        all_day: event.allDay ? "true" : "false",
+        event_type: event.extendedProps.event_type || 'personal',
+        tags: event.extendedProps.tags || [],
+        color: event.backgroundColor,
+        reminder_enabled: event.extendedProps.reminder_enabled ? "true" : "false",
+        reminder_time: event.extendedProps.reminder_time
+    };
+    
+    try {
+        const response = await fetch(`/api/calendar/events/${event.extendedProps.database_id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+        });
+        
+        const data = await response.json();
+        if (data.status !== 'success') {
+            calendar.refetchEvents(); // Revert on error
+        }
+    } catch (error) {
+        console.error('Error updating event:', error);
+        calendar.refetchEvents(); // Revert on error
+    }
+}
+
+function closeEventModal() {
+    document.getElementById('event-modal').classList.remove('active');
+    currentEditingEvent = null;
+}
+
+// Initialize reminder checkbox
+document.addEventListener('DOMContentLoaded', () => {
+    const reminderCheckbox = document.getElementById('event-reminder');
+    if (reminderCheckbox) {
+        reminderCheckbox.addEventListener('change', function() {
+            document.getElementById('reminder-options').style.display = this.checked ? 'block' : 'none';
+        });
+    }
+    
+    // Sync color picker with text input
+    const colorPicker = document.getElementById('event-color');
+    const colorText = document.getElementById('event-color-text');
+    if (colorPicker && colorText) {
+        colorPicker.addEventListener('input', function() {
+            colorText.value = this.value;
+        });
+        colorText.addEventListener('input', function() {
+            if (/^#[0-9A-F]{6}$/i.test(this.value)) {
+                colorPicker.value = this.value;
+            }
+        });
+    }
+});
 
 async function viewItinerary(id) {
     try {
@@ -881,7 +1330,237 @@ function showSuccessMessage(message, type = 'success') {
     }, 5000);
 }
 
+
+async function openBookingPageFromChat() {
+    try {
+        const response = await fetch("/api/booking-options", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status === "success") {
+            bookingTripDetails = data.trip_details;
+            selectedFlight = null;
+            selectedHotel = null;
+            navigateTo("booking");
+            setTimeout(() => loadBookingOptions(data), 300);
+        } else {
+            alert("Unable to extract trip details. Please plan a trip in the chat first!");
+        }
+    } catch (error) {
+        alert("Error: " + error.message);
+    }
+}
+
+function loadBookingOptions(data) {
+    const summaryCard = document.getElementById("booking-details-card");
+    const summaryContent = document.getElementById("booking-summary-content");
+    const summaryText = document.getElementById("booking-summary");
+    if (data.trip_details) {
+        const trip = data.trip_details;
+        summaryContent.innerHTML = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;"><div><strong>📍 Destination:</strong> ${trip.destination}</div><div><strong>✈️ Origin:</strong> ${trip.origin}</div><div><strong>📅 Dates:</strong> ${trip.start_date} to ${trip.end_date}</div><div><strong>💰 Budget:</strong> $${trip.budget.toFixed(2)}</div><div><strong>👥 Passengers:</strong> ${trip.passengers}</div></div>`;
+        summaryCard.style.display = "block";
+        summaryText.textContent = `Select flights and hotel for ${trip.destination}`;
+        
+        // Set default nights and passengers from trip details
+        const numNights = Math.ceil((new Date(trip.end_date) - new Date(trip.start_date)) / (1000 * 60 * 60 * 24));
+        const nightsSelect = document.getElementById("nights-select");
+        const passengersSelect = document.getElementById("passengers-select");
+        if (nightsSelect) nightsSelect.value = numNights || 1;
+        if (passengersSelect) passengersSelect.value = trip.passengers || 1;
+    }
+    
+    // Populate flight dropdown
+    const flightSelect = document.getElementById("flight-select");
+    if (flightSelect && data.flights?.length > 0) {
+        flightSelect.innerHTML = '<option value="">Select Flight</option>' + 
+            data.flights.map((flight, index) => 
+                `<option value="${index}" data-price="${flight.price}">${flight.airline} ${flight.flight_number} - $${flight.price.toFixed(2)} (${flight.departure_time} - ${flight.arrival_time})</option>`
+            ).join("");
+    }
+    
+    // Populate hotel dropdown
+    const hotelSelect = document.getElementById("hotel-select");
+    if (hotelSelect && data.hotels?.length > 0) {
+        hotelSelect.innerHTML = '<option value="">Select Hotel</option>' + 
+            data.hotels.map((hotel, index) => 
+                `<option value="${index}" data-price="${hotel.price_per_night}">${hotel.name} - $${hotel.price_per_night.toFixed(2)}/night (${hotel.rating.toFixed(1)}⭐)</option>`
+            ).join("");
+    }
+    
+    // Store flights and hotels data globally for later use
+    window.bookingFlights = data.flights || [];
+    window.bookingHotels = data.hotels || [];
+    
+    const flightsContainer = document.getElementById("flights-container");
+    if (data.flights?.length > 0) {
+        flightsContainer.innerHTML = data.flights.map((flight, index) => `<div class="flight-option ${selectedFlight === index ? "selected" : ""}" onclick="selectFlight(${index}, ${flight.price})"><div class="flight-header"><div class="flight-airline"><strong>${flight.airline}</strong><span class="flight-number">${flight.flight_number}</span></div><div class="flight-price">$${flight.price.toFixed(2)}</div></div><div class="flight-details"><div class="flight-time"><div><strong>${flight.departure_time}</strong><span class="flight-city">${data.trip_details?.origin || "Mumbai"}</span></div><div class="flight-duration">${flight.duration}</div><div><strong>${flight.arrival_time}</strong><span class="flight-city">${data.trip_details?.destination || "Destination"}</span></div></div><div class="flight-info"><span class="badge badge-primary">${flight.class}</span><span class="badge badge-secondary">${flight.stops === 0 ? "Non-stop" : flight.stops + " stop(s)"}</span></div></div></div>`).join("");
+    } else {
+        flightsContainer.innerHTML = "<p style=\"text-align: center; color: var(--gray); padding: 2rem;\">No flights available.</p>";
+    }
+    const hotelsContainer = document.getElementById("hotels-container");
+    if (data.hotels?.length > 0) {
+        const numNights = data.trip_details ? Math.ceil((new Date(data.trip_details.end_date) - new Date(data.trip_details.start_date)) / (1000 * 60 * 60 * 24)) : 1;
+        hotelsContainer.innerHTML = data.hotels.map((hotel, index) => { const totalPrice = hotel.price_per_night * numNights; return `<div class="hotel-option ${selectedHotel === index ? "selected" : ""}" onclick="selectHotel(${index}, ${hotel.price_per_night}, ${numNights})"><div class="hotel-header"><div><h4 class="hotel-name">${hotel.name}</h4><div class="hotel-rating">${"⭐".repeat(Math.floor(hotel.rating))} ${hotel.rating.toFixed(1)} <span class="hotel-reviews">(${hotel.reviews} reviews)</span></div></div><div class="hotel-price"><div class="price-per-night">$${hotel.price_per_night.toFixed(2)}/night</div><div class="price-total">$${totalPrice.toFixed(2)} total</div></div></div><div class="hotel-details"><div class="hotel-location">📍 ${hotel.location}</div><div class="hotel-amenities">${hotel.amenities.map(a => `<span class="amenity-badge">${a}</span>`).join("")}</div><div class="hotel-style"><span class="badge badge-${hotel.style === "luxury" ? "primary" : hotel.style === "mid-range" ? "success" : "warning"}">${hotel.style}</span></div></div></div>`; }).join("");
+    } else {
+        hotelsContainer.innerHTML = "<p style=\"text-align: center; color: var(--gray); padding: 2rem;\">No hotels available.</p>";
+    }
+    updateTotalPrice();
+}
+
+function updateFlightPrice() {
+    const flightSelect = document.getElementById("flight-select");
+    if (flightSelect && flightSelect.value !== "") {
+        const index = parseInt(flightSelect.value);
+        const price = parseFloat(flightSelect.options[flightSelect.selectedIndex].dataset.price);
+        selectedFlight = index;
+        document.getElementById("flight-price").textContent = `$${price.toFixed(2)}`;
+        // Update visual selection
+        document.querySelectorAll(".flight-option").forEach((f, i) => f.classList.toggle("selected", i === index));
+    } else {
+        selectedFlight = null;
+        document.getElementById("flight-price").textContent = "$0.00";
+        document.querySelectorAll(".flight-option").forEach(f => f.classList.remove("selected"));
+    }
+    updateTotalPrice();
+}
+
+function updateHotelPrice() {
+    const hotelSelect = document.getElementById("hotel-select");
+    if (hotelSelect && hotelSelect.value !== "") {
+        const index = parseInt(hotelSelect.value);
+        const price = parseFloat(hotelSelect.options[hotelSelect.selectedIndex].dataset.price);
+        selectedHotel = index;
+        document.getElementById("hotel-price").textContent = `$${price.toFixed(2)}`;
+        // Update visual selection
+        document.querySelectorAll(".hotel-option").forEach((h, i) => h.classList.toggle("selected", i === index));
+    } else {
+        selectedHotel = null;
+        document.getElementById("hotel-price").textContent = "$0.00";
+        document.querySelectorAll(".hotel-option").forEach(h => h.classList.remove("selected"));
+    }
+    updateTotalPrice();
+}
+
+function selectFlight(index, price) {
+    selectedFlight = index;
+    document.querySelectorAll(".flight-option").forEach((f, i) => f.classList.toggle("selected", i === index));
+    const flightSelect = document.getElementById("flight-select");
+    if (flightSelect) flightSelect.value = index;
+    updateTotalPrice();
+}
+
+function selectHotel(index, pricePerNight, nights) {
+    selectedHotel = index;
+    document.querySelectorAll(".hotel-option").forEach((h, i) => h.classList.toggle("selected", i === index));
+    const hotelSelect = document.getElementById("hotel-select");
+    if (hotelSelect) hotelSelect.value = index;
+    updateTotalPrice();
+}
+function togglePriceSummary() {
+    const footer = document.getElementById("price-summary-footer");
+    if (footer) {
+        footer.classList.toggle("expanded");
+    }
+}
+
+function updateTotalPrice() {
+    const flightPriceEl = document.getElementById("flight-price");
+    const hotelPriceEl = document.getElementById("hotel-price");
+    const nightsCountEl = document.getElementById("nights-count");
+    const passengersCountEl = document.getElementById("passengers-count");
+    const totalPriceEl = document.getElementById("total-price");
+    const footerTotalEl = document.getElementById("footer-total-price");
+    const proceedBtn = document.getElementById("proceed-booking-btn");
+    
+    if (!flightPriceEl || !hotelPriceEl || !totalPriceEl) return;
+    
+    let flightPrice = 0, hotelPricePerNight = 0, nights = 1, passengers = 1;
+    
+    // Get flight price from dropdown or selection
+    const flightSelect = document.getElementById("flight-select");
+    if (flightSelect && flightSelect.value !== "") {
+        flightPrice = parseFloat(flightSelect.options[flightSelect.selectedIndex].dataset.price || 0);
+    } else if (selectedFlight !== null && window.bookingFlights) {
+        flightPrice = window.bookingFlights[selectedFlight]?.price || 0;
+    }
+    
+    // Get hotel price from dropdown or selection
+    const hotelSelect = document.getElementById("hotel-select");
+    if (hotelSelect && hotelSelect.value !== "") {
+        hotelPricePerNight = parseFloat(hotelSelect.options[hotelSelect.selectedIndex].dataset.price || 0);
+    } else if (selectedHotel !== null && window.bookingHotels) {
+        hotelPricePerNight = window.bookingHotels[selectedHotel]?.price_per_night || 0;
+    }
+    
+    // Get nights from dropdown
+    const nightsSelect = document.getElementById("nights-select");
+    if (nightsSelect) {
+        nights = parseInt(nightsSelect.value || 1);
+    } else if (bookingTripDetails) {
+        nights = Math.ceil((new Date(bookingTripDetails.end_date) - new Date(bookingTripDetails.start_date)) / (1000 * 60 * 60 * 24));
+    }
+    
+    // Get passengers from dropdown
+    const passengersSelect = document.getElementById("passengers-select");
+    if (passengersSelect) {
+        passengers = parseInt(passengersSelect.value || 1);
+    } else {
+        const passengerInput = document.getElementById("passenger-count");
+        if (passengerInput) passengers = parseInt(passengerInput.value || 1);
+    }
+    
+    const total = (flightPrice * passengers) + (hotelPricePerNight * nights);
+    
+    flightPriceEl.textContent = `$${flightPrice.toFixed(2)}`;
+    hotelPriceEl.textContent = `$${hotelPricePerNight.toFixed(2)}`;
+    if (nightsCountEl) nightsCountEl.textContent = nights;
+    if (passengersCountEl) passengersCountEl.textContent = passengers;
+    totalPriceEl.innerHTML = `<strong>$${total.toFixed(2)}</strong>`;
+    
+    // Update footer total
+    if (footerTotalEl) {
+        footerTotalEl.textContent = `Total: $${total.toFixed(2)}`;
+    }
+    
+    // Enable proceed button only if both flight and hotel are selected
+    if (proceedBtn) {
+        const hasFlight = (flightSelect && flightSelect.value !== "") || selectedFlight !== null;
+        const hasHotel = (hotelSelect && hotelSelect.value !== "") || selectedHotel !== null;
+        proceedBtn.disabled = !(hasFlight && hasHotel);
+    }
+}
+async function proceedToBooking() {
+    if (selectedFlight === null || selectedHotel === null) { alert("Please select both flight and hotel."); return; }
+    try {
+        const flights = document.querySelectorAll(".flight-option"); const hotels = document.querySelectorAll(".hotel-option");
+        const flightText = flights[selectedFlight].textContent; const flightMatch = flightText.match(/([A-Za-z\s]+)\s+([A-Z0-9]+)/);
+        const flightDetails = { airline: flightMatch?.[1].trim() || "Unknown", flight_number: flightMatch?.[2] || "N/A", price: parseFloat(flightText.match(/\$([\d.]+)/)?.[1] || 0) };
+        const hotelName = hotels[selectedHotel].querySelector(".hotel-name")?.textContent || "Unknown"; const hotelPriceMatch = hotels[selectedHotel].textContent.match(/\$([\d.]+)\/night/);
+        const hotelDetails = { name: hotelName, price_per_night: parseFloat(hotelPriceMatch?.[1] || 0) };
+        const passengersSelect = document.getElementById("passengers-select");
+        const passengers = passengersSelect ? parseInt(passengersSelect.value) : parseInt(document.getElementById("passenger-count")?.value || 1);
+        const email = document.getElementById("passenger-email")?.value;
+        const specialRequests = document.getElementById("special-requests")?.value;
+        const nightsSelect = document.getElementById("nights-select");
+        const nights = nightsSelect ? parseInt(nightsSelect.value) : Math.ceil((new Date(bookingTripDetails.end_date) - new Date(bookingTripDetails.start_date)) / (1000 * 60 * 60 * 24));
+        const totalPrice = (flightDetails.price * passengers) + (hotelDetails.price_per_night * nights);
+        const response = await fetch("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ trip_id: `booking-${Date.now()}`, trip_name: `Trip to ${bookingTripDetails.destination}`, destination: bookingTripDetails.destination, start_date: bookingTripDetails.start_date, end_date: bookingTripDetails.end_date, total_price: totalPrice, passengers: passengers, email: email || undefined, flight_details: flightDetails, hotel_details: hotelDetails, special_requests: specialRequests || undefined }) });
+        const data = await response.json();
+        if (data.status === "success") { showSuccessMessage(`✅ Booking created! ID: ${data.booking_id}`); setTimeout(() => { navigateTo("trips"); loadMyTrips(); }, 2000); } else { alert("Error: " + (data.error || "Unknown error")); }
+    } catch (error) { alert("Error: " + error.message); }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    
+    // Initialize price summary footer - hidden by default
+    const footer = document.getElementById("price-summary-footer");
+    if (footer) {
+        footer.style.display = "none";
+    }
+    
     navigateTo('home');
     checkPaymentStatus();
     
