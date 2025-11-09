@@ -1305,13 +1305,47 @@ async def create_calendar_event(event: CalendarEventRequest, db: Session = Depen
         # Validate date format
         try:
             from datetime import datetime
-            datetime.strptime(event.start_date, "%Y-%m-%d")
-            datetime.strptime(event.end_date, "%Y-%m-%d")
+            start_date_obj = datetime.strptime(event.start_date, "%Y-%m-%d")
+            end_date_obj = datetime.strptime(event.end_date, "%Y-%m-%d")
         except ValueError:
             return {
                 "status": "error",
                 "error": "Invalid date format. Please use YYYY-MM-DD format"
             }
+        
+        # Validate date ordering
+        if end_date_obj < start_date_obj:
+            return {
+                "status": "error",
+                "error": "End date must be on or after start date"
+            }
+        
+        # Validate timed events (non all-day)
+        if event.all_day == "false":
+            # Both start_time and end_time must be provided
+            if not event.start_time or not event.end_time:
+                return {
+                    "status": "error",
+                    "error": "Start time and end time are required for timed events"
+                }
+            
+            # Validate time format (for all timed events, not just same-day)
+            try:
+                start_time_obj = datetime.strptime(event.start_time, "%H:%M")
+                end_time_obj = datetime.strptime(event.end_time, "%H:%M")
+            except ValueError:
+                return {
+                    "status": "error",
+                    "error": "Invalid time format. Please use HH:MM format"
+                }
+            
+            # Validate time ordering (only for same-day events)
+            if event.start_date == event.end_date:
+                if end_time_obj <= start_time_obj:
+                    return {
+                        "status": "error",
+                        "error": "End time must be after start time"
+                    }
         
         # Determine color based on event type if not provided
         color = event.color
