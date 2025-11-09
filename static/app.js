@@ -2416,9 +2416,19 @@ async function handleSignUp(event) {
 }
 
 function logout() {
+    // Close profile menu if open
+    const dropdown = document.getElementById('profile-dropdown');
+    if (dropdown && dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        dropdown.style.display = 'none';
+    }
+    
+    // Clear user data
     localStorage.removeItem('user');
     localStorage.removeItem('auth_token');
     sessionStorage.removeItem('auth_token');
+    
+    // Show notification and redirect
     showInfoToast('You have been signed out successfully');
     setTimeout(() => {
         navigateTo('welcome');
