@@ -1017,6 +1017,77 @@
         </div>
     </div>
 
+    <!-- Payment Page -->
+    <div id="payment-page" class="page">
+        <div class="container" style="padding: 3rem 2rem; max-width: 800px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" fill="white"/>
+                    </svg>
+                </div>
+                <h2 class="section-title" style="margin-bottom: 0.5rem;">Complete Payment</h2>
+                <p class="feature-desc">Review your booking details and proceed to secure payment</p>
+            </div>
+
+            <!-- Booking Confirmation Details -->
+            <div class="payment-summary-card" style="background: var(--bg-secondary); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    Booking Confirmed
+                </h3>
+                <div id="payment-booking-summary" style="line-height: 1.8;"></div>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="payment-summary-card" style="background: var(--bg-secondary); border-radius: 20px; padding: 2rem; margin-bottom: 2rem; border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+                <h3 style="color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                    </svg>
+                    Price Breakdown
+                </h3>
+                <div id="payment-price-breakdown" style="line-height: 2;"></div>
+                <div style="border-top: 2px solid var(--primary); margin: 1.5rem 0; padding-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 1.3rem; color: var(--text-primary);">Total Amount</strong>
+                        <strong id="payment-total-amount" style="font-size: 1.5rem; color: var(--primary);"></strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Badge -->
+            <div style="text-align: center; margin-bottom: 2rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; color: #22c55e;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                    </svg>
+                    <span style="font-weight: 600;">Secure Payment powered by Stripe</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="navigateTo('trips')" style="flex: 1; min-width: 200px;">
+                    ← Back to My Trips
+                </button>
+                <button class="btn btn-primary" id="stripe-payment-btn" onclick="proceedToStripePayment()" style="flex: 2; min-width: 200px; padding: 1.2rem 2rem; font-size: 1.1rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display: inline-block; margin-right: 0.5rem;">
+                        <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                    </svg>
+                    Proceed to Stripe Payment
+                </button>
+            </div>
+
+            <!-- Help Text -->
+            <p style="text-align: center; margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem;">
+                💡 You'll be redirected to Stripe's secure payment page. After payment, you'll return here automatically.
+            </p>
+        </div>
+    </div>
+
     <!-- Preferences Page -->
     <div id="preferences-page" class="page">
         <div class="preferences-container" style="padding: 3rem 2rem;">
