@@ -1287,7 +1287,21 @@ function openEventModalForEdit(event) {
 function toggleEventTime() {
     const allDay = document.getElementById('event-all-day').checked;
     const timeFields = document.getElementById('event-time-fields');
+    const startTimeInput = document.getElementById('event-start-time');
+    const endTimeInput = document.getElementById('event-end-time');
+    
     timeFields.style.display = allDay ? 'none' : 'grid';
+    
+    // Make time fields required when not all-day
+    if (startTimeInput && endTimeInput) {
+        if (allDay) {
+            startTimeInput.removeAttribute('required');
+            endTimeInput.removeAttribute('required');
+        } else {
+            startTimeInput.setAttribute('required', 'required');
+            endTimeInput.setAttribute('required', 'required');
+        }
+    }
 }
 
 function updateEventColor() {
@@ -1311,13 +1325,41 @@ async function saveEvent(e) {
     const startDate = document.getElementById('event-start-date').value;
     const endDate = document.getElementById('event-end-date').value;
     const allDay = document.getElementById('event-all-day').checked;
-    const startTime = allDay ? null : document.getElementById('event-start-time').value;
-    const endTime = allDay ? null : document.getElementById('event-end-time').value;
+    const startTimeInput = document.getElementById('event-start-time').value;
+    const endTimeInput = document.getElementById('event-end-time').value;
     const eventType = document.getElementById('event-type').value;
     const tags = document.getElementById('event-tags').value.split(',').map(t => t.trim()).filter(t => t);
     const color = document.getElementById('event-color-text').value;
     const reminderEnabled = document.getElementById('event-reminder').checked;
     const reminderTime = reminderEnabled ? document.getElementById('event-reminder-time').value : null;
+    
+    // Validation: if not all-day, require times
+    let startTime = null;
+    let endTime = null;
+    if (!allDay) {
+        if (!startTimeInput || !endTimeInput) {
+            showErrorToast('Please enter both start and end times for timed events');
+            return;
+        }
+        startTime = startTimeInput;
+        endTime = endTimeInput;
+        
+        // Validate that end time is after start time on the same day
+        if (startDate === endDate) {
+            const startMinutes = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+            const endMinutes = parseInt(endTime.split(':')[0]) * 60 + parseInt(endTime.split(':')[1]);
+            if (endMinutes <= startMinutes) {
+                showErrorToast('End time must be after start time');
+                return;
+            }
+        }
+    }
+    
+    // Validate dates
+    if (new Date(endDate) < new Date(startDate)) {
+        showErrorToast('End date must be on or after start date');
+        return;
+    }
     
     // Add loading state to save button
     const saveBtn = document.querySelector('#event-form button[type="submit"]');
