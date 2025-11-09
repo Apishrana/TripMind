@@ -608,7 +608,6 @@ async def create_booking(booking: BookingRequest, db: Session = Depends(get_db))
             
             # Validate and calculate number of nights from dates
             try:
-                from datetime import datetime
                 start = datetime.strptime(booking.start_date, '%Y-%m-%d')
                 end = datetime.strptime(booking.end_date, '%Y-%m-%d')
                 
