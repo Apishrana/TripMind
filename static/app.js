@@ -2,6 +2,7 @@ let currentPage = 'home';
 let selectedFlight = null;
 let selectedHotel = null;
 let bookingTripDetails = null;
+let currentPaymentBooking = null; // Store current booking for payment page
 let toastCounter = 0;
 
 // ========== TOAST NOTIFICATION SYSTEM (XSS-Safe) ==========
@@ -179,6 +180,14 @@ function navigateTo(page) {
                 if (!bookingTripDetails) {
                     // If booking page opened without trip details, try to load from chat
                     openBookingPageFromChat();
+                }
+            } else if (page === 'payment') {
+                // Load payment page with booking details
+                loadPaymentPage();
+                // Hide price summary footer on payment page
+                const footer = document.getElementById("price-summary-footer");
+                if (footer) {
+                    footer.style.display = "none";
                 }
             } else {
                 // Hide price summary footer on other pages
@@ -2255,21 +2264,22 @@ async function proceedToBooking() {
         const bookingData = await bookingResponse.json();
         
         if (bookingData.status === "success") {
-            const checkoutResponse = await fetch("/api/create-checkout-session", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    booking_id: bookingData.booking_id
-                })
-            });
+            // Store booking details for payment page
+            currentPaymentBooking = {
+                booking_id: bookingData.booking_id,
+                booking: bookingData.booking,
+                flight_details: flightDetails,
+                hotel_details: hotelDetails,
+                nights: nights,
+                passengers: passengers,
+                total_price: totalPrice
+            };
             
-            const checkoutData = await checkoutResponse.json();
-            
-            if (checkoutData.status === "success" && checkoutData.checkout_url) {
-                window.location.href = checkoutData.checkout_url;
-            } else {
-                throw new Error(checkoutData.error || "Failed to create payment session");
-            }
+            // Navigate to payment page instead of directly to Stripe
+            showSuccessToast('✅ Booking created successfully! Proceeding to payment...');
+            setTimeout(() => {
+                navigateTo('payment');
+            }, 1000);
         } else {
             throw new Error(bookingData.error || "Failed to create booking");
         }
@@ -2279,6 +2289,128 @@ async function proceedToBooking() {
         if (proceedBtn) {
             proceedBtn.disabled = false;
             proceedBtn.innerHTML = '💳 Proceed to Payment';
+        }
+    }
+}
+
+// ========== PAYMENT PAGE ==========
+function loadPaymentPage() {
+    if (!currentPaymentBooking) {
+        showErrorToast('No booking found. Please create a booking first.');
+        navigateTo('trips');
+        return;
+    }
+    
+    const { booking, flight_details, hotel_details, nights, passengers, total_price, booking_id } = currentPaymentBooking;
+    
+    // Populate booking summary
+    const summaryEl = document.getElementById('payment-booking-summary');
+    if (summaryEl) {
+        summaryEl.innerHTML = `
+            <div style="display: grid; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Booking ID:</span>
+                    <strong style="color: var(--primary); font-family: monospace;">${booking_id}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Destination:</span>
+                    <strong>${booking.destination}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Travel Dates:</span>
+                    <strong>${booking.start_date} to ${booking.end_date}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Passengers:</span>
+                    <strong>${passengers} ${passengers === 1 ? 'Passenger' : 'Passengers'}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-secondary);">Email:</span>
+                    <strong>${booking.email || 'N/A'}</strong>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Populate price breakdown
+    const breakdownEl = document.getElementById('payment-price-breakdown');
+    if (breakdownEl) {
+        const flightTotal = flight_details.price * passengers;
+        const hotelTotal = hotel_details.price_per_night * nights;
+        
+        breakdownEl.innerHTML = `
+            <div style="display: grid; gap: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary);">✈️ Flight</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            ${flight_details.airline} ${flight_details.flight_number} × ${passengers} ${passengers === 1 ? 'passenger' : 'passengers'}
+                        </div>
+                    </div>
+                    <strong style="color: var(--text-primary);">$${flightTotal.toFixed(2)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-top: 1px solid var(--border-color);">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary);">🏨 Hotel</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            ${hotel_details.name} × ${nights} ${nights === 1 ? 'night' : 'nights'}
+                        </div>
+                    </div>
+                    <strong style="color: var(--text-primary);">$${hotelTotal.toFixed(2)}</strong>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Set total amount
+    const totalEl = document.getElementById('payment-total-amount');
+    if (totalEl) {
+        totalEl.textContent = `$${total_price.toFixed(2)}`;
+    }
+}
+
+async function proceedToStripePayment() {
+    if (!currentPaymentBooking) {
+        showErrorToast('No booking found. Please try again.');
+        return;
+    }
+    
+    const btn = document.getElementById('stripe-payment-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="loading-spinner-small" style="margin: 0 auto; display: inline-block;"></div> Creating payment session...';
+    }
+    
+    try {
+        const response = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                booking_id: currentPaymentBooking.booking_id,
+                amount: currentPaymentBooking.total_price
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success" && data.checkout_url) {
+            // Redirect to Stripe checkout
+            window.location.href = data.checkout_url;
+        } else {
+            throw new Error(data.error || data.message || "Failed to create payment session");
+        }
+    } catch (error) {
+        console.error('Payment error:', error);
+        showErrorToast('Failed to create payment session: ' + error.message);
+        
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display: inline-block; margin-right: 0.5rem;">
+                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                </svg>
+                Proceed to Stripe Payment
+            `;
         }
     }
 }
