@@ -302,6 +302,28 @@ body::before {
 }
 
 /* Settings Page Styles */
+.settings-page .btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.settings-page .btn-secondary:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .settings-page .btn-secondary {
+    background: #334155;
+    color: var(--dark);
+    border-color: #475569;
+}
+
+[data-theme="dark"] .settings-page .btn-secondary:hover {
+    background: #475569;
+    border-color: #64748b;
+}
+
 .settings-nav-btn {
     display: flex;
     align-items: center;
