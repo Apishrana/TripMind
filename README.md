@@ -143,7 +143,7 @@ Preferred communication style: Simple, everyday language.
    ```bash
    cp .env.example .env
    # Edit .env and add your API keys:
-   # - GROQ_API_KEY (required for AI features)
+   # - OPENROUTER_API_KEY (required for AI features)
    # - STRIPE_SECRET_KEY (required for payments)
    # - DATABASE_URL (optional, defaults to SQLite)
    ```
@@ -186,7 +186,7 @@ Create a `.env` file in the project root with the following variables:
 DATABASE_URL=postgresql://user:password@localhost:5432/traveldb
 
 # AI Agent (required for AI features)
-GROQ_API_KEY=your_groq_api_key_here
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 # Stripe (required for payments)
 STRIPE_SECRET_KEY=your_stripe_secret_key_here

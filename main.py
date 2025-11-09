@@ -237,9 +237,9 @@ async def plan_trip(query: TravelQuery):
     if agent is None:
         return TravelResponse(
             status="error",
-            response="⚠️ AI Agent is currently unavailable. Please configure the GROQ_API_KEY environment variable to enable AI-powered trip planning. You can still use the booking features!",
+            response="⚠️ AI Agent is currently unavailable. Please configure the OPENROUTER_API_KEY environment variable to enable AI-powered trip planning. You can still use the booking features!",
             request=query.query,
-            error="AI agent is not available. Please set GROQ_API_KEY environment variable."
+            error="AI agent is not available. Please set OPENROUTER_API_KEY environment variable."
         )
     try:
         result = agent.plan_trip(query.query)
