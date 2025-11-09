@@ -9,6 +9,14 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Fixed Profile Dropdown Visibility** (2025-11-09): Resolved profile dropdown menu not appearing issue
+  - Issue: Inline `style="display: none;"` in HTML was preventing CSS animations from working
+  - Solution: Removed inline display style and simplified JavaScript to only toggle CSS classes
+  - CSS now handles all visibility and animations through opacity and pointer-events
+  - Cleaned up JavaScript by removing unnecessary display property manipulation
+  - Removed unused `profileDropdownHideTimeout` variable for cleaner code
+  - Profile dropdown now properly shows/hides with smooth animations
+  - Testing: Architect-reviewed and confirmed the fix is correct with no edge case issues
 - **Profile Button Fully Operational** (2025-11-09): Verified and improved profile dropdown functionality
   - Profile dropdown menu displays user avatar with initials, name, and email
   - Complete menu with Account Settings, My Trips, My Bookings, Calendar, and Preferences
