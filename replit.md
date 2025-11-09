@@ -9,15 +9,21 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
-- **Added Dedicated Sign Out Button** (2025-11-09): Integrated quick-access logout button in navbar
-  - Added standalone "Sign Out" button positioned between theme toggle and profile button
-  - Red color theme (light red background, darker on hover) to clearly indicate logout action
-  - Includes logout icon (door with arrow) and "Sign Out" text
-  - Mobile responsive: on screens <768px, text is hidden and only icon shows (40x40px circle)
-  - Dark mode support with adjusted colors for better visibility
-  - Clicking button directly calls logout() function - clears session and redirects to welcome page
-  - Profile dropdown still retains its own logout option for alternative access
-  - Testing: Architect-reviewed and confirmed proper integration with existing navbar styling
+- **Consolidated Navbar UI with Settings Button** (2025-11-09): Replaced theme toggle, profile button, and sign out button with unified Settings menu
+  - Removed separate theme toggle, logout, and profile buttons from navbar
+  - Added single Settings button with gear icon (rotates 45° on hover)
+  - Settings dropdown menu includes:
+    * Theme toggle option with dynamic icon (moon/sun)
+    * Profile section displaying user avatar (initials), name, and email
+    * Navigation shortcuts: Account Settings, My Trips, My Bookings, Calendar, Preferences
+    * Switch Account option
+    * Sign Out option with red styling for clear identification
+  - Robust event handling: supports both mouse and keyboard activation
+  - Menu auto-closes when clicking outside or after selecting an option
+  - Mobile responsive: gear icon maintains proper size on all screen sizes
+  - Dark mode support: all menu elements adapt to theme
+  - CSS cleanup: removed old styles for theme-toggle, logout-btn, profile-menu-container
+  - Testing: Architect-reviewed and confirmed all functionality works correctly without regressions
 - **Fixed Profile Dropdown Visibility** (2025-11-09): Resolved profile dropdown menu not appearing issue
   - Issue: Inline `style="display: none;"` in HTML was preventing CSS animations from working
   - Solution: Removed inline display style and simplified JavaScript to only toggle CSS classes
