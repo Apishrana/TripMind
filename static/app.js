@@ -2318,9 +2318,6 @@ async function handleSignIn(event) {
                 sessionStorage.setItem('auth_token', data.token);
             }
             
-            // Load user profile
-            loadUserProfile();
-            
             // Show success message
             showSuccessMessage('✅ Welcome back! Redirecting to home...');
             
@@ -2392,9 +2389,6 @@ async function handleSignUp(event) {
             localStorage.setItem('user', JSON.stringify(data.user));
             sessionStorage.setItem('auth_token', data.token);
             
-            // Load user profile
-            loadUserProfile();
-            
             // Show success message
             showSuccessMessage('✅ Account created successfully! Welcome aboard!');
             
@@ -2417,13 +2411,6 @@ async function handleSignUp(event) {
 }
 
 function logout() {
-    // Close profile menu if open
-    const dropdown = document.getElementById('profile-dropdown');
-    if (dropdown && dropdown.classList.contains('show')) {
-        dropdown.classList.remove('show');
-        document.removeEventListener('click', closeProfileMenuOnClickOutside);
-    }
-    
     // Clear user data
     localStorage.removeItem('user');
     localStorage.removeItem('auth_token');
@@ -2660,7 +2647,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check authentication and navigate accordingly
     if (checkAuth()) {
         navigateTo('home');
-        loadUserProfile(); // Load user profile info
     } else {
         navigateTo('welcome');
     }
