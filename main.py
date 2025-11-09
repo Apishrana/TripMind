@@ -1498,6 +1498,41 @@ async def delete_calendar_event(event_id: int, db: Session = Depends(get_db)):
             "error": f"Failed to delete event: {error_msg}"
         }
 
+@app.get("/api/calendar/stats")
+async def get_calendar_stats(db: Session = Depends(get_db)):
+    """Get calendar statistics including total and upcoming events."""
+    try:
+        from datetime import datetime, date
+        today = date.today()
+        
+        all_events = db.query(CalendarEvent).all()
+        total_events = len(all_events)
+        
+        upcoming_events = 0
+        for event in all_events:
+            try:
+                event_start = datetime.strptime(event.start_date, "%Y-%m-%d").date()
+                if event_start >= today:
+                    upcoming_events += 1
+            except:
+                pass
+        
+        return {
+            "status": "success",
+            "total_events": total_events,
+            "upcoming_events": upcoming_events,
+            "past_events": total_events - upcoming_events
+        }
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        print(f"Error getting calendar stats: {error_msg}")
+        print(traceback.format_exc())
+        return {
+            "status": "error",
+            "error": f"Failed to get calendar stats: {error_msg}"
+        }
+
 if __name__ == "__main__":
     # Run the server on 0.0.0.0:5000 for Replit
     uvicorn.run(app, host="0.0.0.0", port=5000)
