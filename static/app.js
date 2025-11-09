@@ -1124,14 +1124,12 @@ async function loadCalendar() {
         // Hide loading state after render
         setTimeout(() => {
             calendarEl.classList.remove('loading');
-            updateCalendarStats();
         }, 500);
     } else {
         // Refresh events
         calendar.refetchEvents();
         setTimeout(() => {
             calendarEl.classList.remove('loading');
-            updateCalendarStats();
         }, 500);
     }
 }
@@ -1166,38 +1164,34 @@ function goToToday() {
 }
 
 // Update calendar statistics
-async function updateCalendarStats() {
+function updateCalendarStats() {
     try {
-        const response = await fetch('/api/calendar/events');
-        if (!response.ok) return;
+        if (!calendar) return;
         
-        const data = await response.json();
-        if (data.status === 'success' && Array.isArray(data.events)) {
-            const events = data.events;
-            const now = new Date();
-            
-            // Total events
-            const totalEl = document.getElementById('total-events-count');
-            if (totalEl) {
-                animateValue(totalEl, 0, events.length, 500);
-            }
-            
-            // Booking events
-            const bookingCount = events.filter(e => e.extendedProps?.is_booking).length;
-            const bookingEl = document.getElementById('booking-events-count');
-            if (bookingEl) {
-                animateValue(bookingEl, 0, bookingCount, 500);
-            }
-            
-            // Upcoming events (within next 7 days)
-            const upcomingCount = events.filter(e => {
-                const startDate = new Date(e.start);
-                return startDate >= now && startDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-            }).length;
-            const upcomingEl = document.getElementById('upcoming-events-count');
-            if (upcomingEl) {
-                animateValue(upcomingEl, 0, upcomingCount, 500);
-            }
+        const events = calendar.getEvents();
+        const now = new Date();
+        
+        // Total events
+        const totalEl = document.getElementById('total-events-count');
+        if (totalEl) {
+            animateValue(totalEl, 0, events.length, 500);
+        }
+        
+        // Booking events
+        const bookingCount = events.filter(e => e.extendedProps?.is_booking).length;
+        const bookingEl = document.getElementById('booking-events-count');
+        if (bookingEl) {
+            animateValue(bookingEl, 0, bookingCount, 500);
+        }
+        
+        // Upcoming events (within next 7 days)
+        const upcomingCount = events.filter(e => {
+            const startDate = new Date(e.start);
+            return startDate >= now && startDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        }).length;
+        const upcomingEl = document.getElementById('upcoming-events-count');
+        if (upcomingEl) {
+            animateValue(upcomingEl, 0, upcomingCount, 500);
         }
     } catch (error) {
         console.error('Error updating calendar stats:', error);
