@@ -3,7 +3,6 @@ let selectedFlight = null;
 let selectedHotel = null;
 let bookingTripDetails = null;
 let toastCounter = 0;
-let profileDropdownHideTimeout = null;
 
 // ========== TOAST NOTIFICATION SYSTEM (XSS-Safe) ==========
 function showToast(message, type = 'info', duration = 5000) {
@@ -2420,7 +2419,7 @@ function logout() {
     const dropdown = document.getElementById('profile-dropdown');
     if (dropdown && dropdown.classList.contains('show')) {
         dropdown.classList.remove('show');
-        dropdown.style.display = 'none';
+        document.removeEventListener('click', closeProfileMenuOnClickOutside);
     }
     
     // Clear user data
@@ -2470,19 +2469,9 @@ function toggleProfileMenu(event) {
     const dropdown = document.getElementById('profile-dropdown');
     const isOpen = dropdown.classList.contains('show');
     
-    // Clear any pending hide timeout
-    if (profileDropdownHideTimeout) {
-        clearTimeout(profileDropdownHideTimeout);
-        profileDropdownHideTimeout = null;
-    }
-    
     if (!isOpen) {
         // Opening the dropdown
-        dropdown.style.display = 'block';
-        // Trigger animation
-        requestAnimationFrame(() => {
-            dropdown.classList.add('show');
-        });
+        dropdown.classList.add('show');
         // Add click listener to close when clicking outside
         setTimeout(() => {
             document.addEventListener('click', closeProfileMenuOnClickOutside);
@@ -2490,11 +2479,6 @@ function toggleProfileMenu(event) {
     } else {
         // Closing the dropdown
         dropdown.classList.remove('show');
-        // Wait for animation before hiding
-        profileDropdownHideTimeout = setTimeout(() => {
-            dropdown.style.display = 'none';
-            profileDropdownHideTimeout = null;
-        }, 300);
         document.removeEventListener('click', closeProfileMenuOnClickOutside);
     }
 }
@@ -2504,17 +2488,7 @@ function closeProfileMenuOnClickOutside(event) {
     const profileContainer = document.querySelector('.profile-menu-container');
     
     if (!profileContainer.contains(event.target)) {
-        // Clear any pending hide timeout
-        if (profileDropdownHideTimeout) {
-            clearTimeout(profileDropdownHideTimeout);
-            profileDropdownHideTimeout = null;
-        }
-        
         dropdown.classList.remove('show');
-        profileDropdownHideTimeout = setTimeout(() => {
-            dropdown.style.display = 'none';
-            profileDropdownHideTimeout = null;
-        }, 300);
         document.removeEventListener('click', closeProfileMenuOnClickOutside);
     }
 }
