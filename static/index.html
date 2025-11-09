@@ -288,100 +288,11 @@
                 <li class="nav-link" data-page="trips" onclick="navigateTo('trips')">My Trips</li>
                 <li class="nav-link nav-booking" data-page="booking" onclick="openBookingPageFromChat()" style="background: var(--gradient-1); color: white; border-radius: 25px; padding: 0.5rem 1.5rem; font-weight: 600;">Book Now</li>
                 <li class="nav-link" data-page="preferences" onclick="navigateTo('preferences')">Preferences</li>
-                <li class="nav-link settings-menu-container">
-                    <div class="settings-trigger" onclick="toggleSettingsMenu(event)">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
-                        </svg>
-                    </div>
-                    <div class="settings-dropdown" id="settings-dropdown">
-                        <div class="settings-dropdown-header">
-                            <h4>Settings</h4>
-                        </div>
-                        <ul class="settings-dropdown-menu">
-                            <li onclick="toggleTheme(); event.stopPropagation();">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                                </svg>
-                                <span>Toggle Theme</span>
-                                <span id="theme-icon-settings" style="margin-left: auto;">🌙</span>
-                            </li>
-                        </ul>
-                        <div class="settings-dropdown-divider"></div>
-                        <div class="settings-profile-section">
-                            <div class="profile-avatar-large">
-                                <span id="settings-profile-initials">U</span>
-                            </div>
-                            <div class="profile-info">
-                                <div class="profile-name" id="settings-profile-name">User Name</div>
-                                <div class="profile-email" id="settings-profile-email">user@example.com</div>
-                            </div>
-                        </div>
-                        <div class="settings-dropdown-divider"></div>
-                        <ul class="settings-dropdown-menu">
-                            <li onclick="showAccountSettings(); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                Account Settings
-                            </li>
-                            <li onclick="navigateTo('trips'); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                    <circle cx="12" cy="10" r="3"></circle>
-                                </svg>
-                                My Trips
-                            </li>
-                            <li onclick="showMyBookings(); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                                    <polyline points="10 9 9 9 8 9"></polyline>
-                                </svg>
-                                My Bookings
-                            </li>
-                            <li onclick="navigateTo('calendar'); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                Calendar
-                            </li>
-                            <li onclick="navigateTo('preferences'); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M12 1v6m0 6v6m8.66-15.66l-4.24 4.24m-4.24 4.24l-4.24 4.24m15.66-8.66l-4.24 4.24m-4.24 4.24l-4.24 4.24"></path>
-                                </svg>
-                                Preferences
-                            </li>
-                        </ul>
-                        <div class="settings-dropdown-divider"></div>
-                        <ul class="settings-dropdown-menu">
-                            <li onclick="switchAccount(); toggleSettingsMenu(event);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                </svg>
-                                Switch Account
-                            </li>
-                            <li onclick="logout()" class="settings-logout-item">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                                    <polyline points="16 17 21 12 16 7"></polyline>
-                                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                                </svg>
-                                Sign Out
-                            </li>
-                        </ul>
-                    </div>
+                <li class="nav-link" data-page="settings" onclick="navigateTo('settings')" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+                    </svg>
                 </li>
             </ul>
         </div>
