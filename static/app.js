@@ -114,9 +114,9 @@ function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
     
-    const themeIconSettings = document.getElementById('theme-icon-settings');
-    if (themeIconSettings) {
-        themeIconSettings.textContent = theme === 'dark' ? '☀️' : '🌙';
+    const themeIconSettingsPage = document.getElementById('settings-page-theme-icon');
+    if (themeIconSettingsPage) {
+        themeIconSettingsPage.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
     
     // Add smooth transition
@@ -161,6 +161,8 @@ function navigateTo(page) {
             
             if (page === 'preferences') {
                 loadPreferences();
+            } else if (page === 'settings') {
+                loadSettingsPageProfile();
             } else if (page === 'trips') {
                 loadMyTrips();
             } else if (page === 'calendar') {
@@ -2463,58 +2465,25 @@ function showMyBookings() {
     }, 500);
 }
 
-// ========== SETTINGS MENU ==========
-function toggleSettingsMenu(event) {
-    if (event && event.stopPropagation) {
-        event.stopPropagation();
-    }
-    const dropdown = document.getElementById('settings-dropdown');
-    if (!dropdown) return;
-    
-    const isOpen = dropdown.classList.contains('show');
-    
-    if (!isOpen) {
-        // Opening the dropdown
-        dropdown.classList.add('show');
-        // Add click listener to close when clicking outside
-        setTimeout(() => {
-            document.addEventListener('click', closeSettingsMenuOnClickOutside);
-        }, 0);
-    } else {
-        // Closing the dropdown
-        dropdown.classList.remove('show');
-        document.removeEventListener('click', closeSettingsMenuOnClickOutside);
-    }
-}
-
-function closeSettingsMenuOnClickOutside(event) {
-    const dropdown = document.getElementById('settings-dropdown');
-    const settingsContainer = document.querySelector('.settings-menu-container');
-    
-    if (dropdown && settingsContainer && !settingsContainer.contains(event.target)) {
-        dropdown.classList.remove('show');
-        document.removeEventListener('click', closeSettingsMenuOnClickOutside);
-    }
-}
-
-function loadUserProfile() {
+// ========== SETTINGS PAGE ==========
+function loadSettingsPageProfile() {
     const userStr = localStorage.getItem('user');
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
             
-            // Update settings dropdown name and email
-            const settingsProfileName = document.getElementById('settings-profile-name');
-            const settingsProfileEmail = document.getElementById('settings-profile-email');
+            // Update settings page name and email
+            const settingsPageName = document.getElementById('settings-page-name');
+            const settingsPageEmail = document.getElementById('settings-page-email');
             
-            if (settingsProfileName) settingsProfileName.textContent = user.name || 'User Name';
-            if (settingsProfileEmail) settingsProfileEmail.textContent = user.email || 'user@example.com';
+            if (settingsPageName) settingsPageName.textContent = user.name || 'User Name';
+            if (settingsPageEmail) settingsPageEmail.textContent = user.email || 'user@example.com';
             
-            // Update initials in settings dropdown avatar
+            // Update initials in settings page avatar
             const initials = getInitials(user.name || 'User');
-            const settingsProfileInitials = document.getElementById('settings-profile-initials');
+            const settingsPageInitials = document.getElementById('settings-page-initials');
             
-            if (settingsProfileInitials) settingsProfileInitials.textContent = initials;
+            if (settingsPageInitials) settingsPageInitials.textContent = initials;
         } catch (error) {
             console.error('Error loading user profile:', error);
         }

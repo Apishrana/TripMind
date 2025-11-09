@@ -416,6 +416,86 @@ body::before {
     color: #f87171 !important;
 }
 
+/* Settings Page Styles */
+.settings-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.settings-nav-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    cursor: none;
+}
+
+.settings-nav-btn svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.settings-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    width: 100%;
+}
+
+.settings-action-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary);
+    transform: translateX(4px);
+    cursor: none;
+}
+
+.settings-action-btn svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.settings-logout-btn {
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.settings-logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: #ef4444 !important;
+}
+
+.settings-logout-btn svg {
+    color: #ef4444;
+}
+
+[data-theme="dark"] .settings-logout-btn {
+    color: #f87171 !important;
+    border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+[data-theme="dark"] .settings-logout-btn:hover {
+    border-color: #f87171 !important;
+}
+
 /* Dark Mode Global Styles */
 [data-theme="dark"] {
     --dark: #f8fafc;
