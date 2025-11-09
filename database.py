@@ -8,10 +8,12 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if not DATABASE_URL:
     DATABASE_URL = "sqlite:///./travel_planner.db"
+else:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# Set connect_args based on database type
 connect_args = {}
-if DATABASE_URL and DATABASE_URL.startswith("sqlite"):
+if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(
