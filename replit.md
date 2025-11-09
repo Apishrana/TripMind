@@ -9,6 +9,14 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Enhanced Calendar Event Validation** (2025-11-09): Improved calendar event creation with comprehensive validation
+  - Added required field validation for timed events (non all-day): both start and end times must be provided
+  - Time ordering validation: ensures end time is after start time on the same day
+  - Date validation: prevents backward-dated events (end date must be on or after start date)
+  - Dynamic UI: time input fields become required when "All Day Event" is unchecked
+  - Clear UI labels: added asterisks (*) to indicate required time fields
+  - User-friendly errors: integrated with toast notification system (showErrorToast) for consistent feedback
+  - Testing: Architect-reviewed and verified proper integration with backend null-time handling for all-day events
 - **Fixed Critical Booking Flow Bug** (2025-11-09): Resolved "StructuredTool not callable" error
   - Issue: LangChain @tool decorated functions were being called as regular functions in /api/booking-options
   - Root cause: search_flights and search_hotels are StructuredTool objects, not callable functions
