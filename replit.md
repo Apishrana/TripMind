@@ -8,6 +8,26 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (Latest)
+- **Fixed Critical Booking Flow Bug** (2025-11-09): Resolved "StructuredTool not callable" error
+  - Issue: LangChain @tool decorated functions were being called as regular functions in /api/booking-options
+  - Root cause: search_flights and search_hotels are StructuredTool objects, not callable functions
+  - Solution: Changed to use .invoke() method with proper argument dictionaries
+  - Impact: Booking options endpoint now successfully returns flight and hotel data
+  - Testing: Confirmed working through API endpoint tests (returns 200 OK with valid data)
+- **Migrated to OpenRouter.ai** (2025-11-09): Switched from Groq to OpenRouter for AI model access
+  - Updated from ChatGroq to ChatOpenAI with OpenRouter base URL (https://openrouter.ai/api/v1)
+  - Model: meta-llama/llama-3.3-70b-instruct (previously llama-3.3-70b-versatile)
+  - Configuration: Now uses OPENROUTER_API_KEY environment variable
+  - Benefits: Access to 100+ AI models, better pricing flexibility, easy model switching
+  - Updated: main.py, agent/travel_agent.py, README.md, docker-compose.yml, replit.md
+  - Testing: AI planning endpoint confirmed working with full trip generation
+- **Improved Booking Flow Error Handling** (2025-11-08): Enhanced debugging and user experience
+  - Replaced browser alerts with modern toast notifications
+  - Added comprehensive console logging for trip details and API responses
+  - Implemented proper HTTP status checking before parsing JSON
+  - Check both data.message and data.error fields for complete error information
+
 ## System Architecture
 
 ### Application Architecture
