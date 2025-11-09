@@ -1,4 +1,5 @@
 import os
+import math
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
@@ -549,15 +550,6 @@ async def get_booking_options(request: Dict[str, Any] = None):
 async def create_booking(booking: BookingRequest, db: Session = Depends(get_db)):
     """Create a new booking with server-side price calculation."""
     try:
-        # SECURITY: Calculate price server-side using canonical trip prices
-        # Ignore any client-provided total_price
-        
-        if booking.trip_id not in TRIP_PRICES:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Unknown trip ID: {booking.trip_id}"
-            )
-        
         # Validate passenger count
         if booking.passengers < 1 or booking.passengers > 10:
             raise HTTPException(
@@ -565,9 +557,92 @@ async def create_booking(booking: BookingRequest, db: Session = Depends(get_db))
                 detail="Passenger count must be between 1 and 10"
             )
         
-        # Calculate total using TRUSTED server-side pricing
-        base_price = TRIP_PRICES[booking.trip_id]
-        calculated_total = base_price * booking.passengers
+        # Determine if this is a dynamic booking (AI-generated) or pre-defined trip
+        is_dynamic_booking = booking.trip_id.startswith("booking-")
+        
+        if is_dynamic_booking:
+            # For dynamic bookings, calculate price from flight and hotel details
+            if not booking.flight_details or not booking.hotel_details:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Flight and hotel details are required for dynamic bookings"
+                )
+            
+            # Extract and validate pricing from flight details
+            if 'price' not in booking.flight_details:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Flight price is required for dynamic bookings"
+                )
+            
+            try:
+                flight_price = float(booking.flight_details['price'])
+                if not math.isfinite(flight_price):
+                    raise ValueError("Flight price must be a valid finite number")
+                if flight_price <= 0:
+                    raise ValueError("Flight price must be positive")
+            except (ValueError, TypeError) as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid flight price: {str(e)}"
+                )
+            
+            # Extract and validate pricing from hotel details
+            if 'price_per_night' not in booking.hotel_details:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Hotel price per night is required for dynamic bookings"
+                )
+            
+            try:
+                hotel_price_per_night = float(booking.hotel_details['price_per_night'])
+                if not math.isfinite(hotel_price_per_night):
+                    raise ValueError("Hotel price must be a valid finite number")
+                if hotel_price_per_night <= 0:
+                    raise ValueError("Hotel price must be positive")
+            except (ValueError, TypeError) as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid hotel price: {str(e)}"
+                )
+            
+            # Validate and calculate number of nights from dates
+            try:
+                from datetime import datetime
+                start = datetime.strptime(booking.start_date, '%Y-%m-%d')
+                end = datetime.strptime(booking.end_date, '%Y-%m-%d')
+                
+                if end <= start:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="End date must be after start date"
+                    )
+                
+                nights = (end - start).days
+                if nights < 1:
+                    nights = 1
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
+                )
+            
+            # Calculate total: (flight × passengers) + (hotel × nights)
+            flight_total = flight_price * booking.passengers
+            hotel_total = hotel_price_per_night * nights
+            calculated_total = flight_total + hotel_total
+            base_price = calculated_total / booking.passengers  # For record keeping
+        else:
+            # For pre-defined trips, use existing secure pricing
+            if booking.trip_id not in TRIP_PRICES:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Unknown trip ID: {booking.trip_id}"
+                )
+            
+            # Calculate total using TRUSTED server-side pricing
+            base_price = TRIP_PRICES[booking.trip_id]
+            calculated_total = base_price * booking.passengers
         
         booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
         
