@@ -9,6 +9,20 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Fixed Dynamic Booking Price Validation** (2025-11-09): Resolved booking creation failures for AI-generated trips
+  - Issue: Backend only accepted pre-defined trip IDs from TRIP_PRICES, rejecting dynamic booking IDs like "booking-1762651234567"
+  - Solution: Updated /api/bookings endpoint to detect dynamic bookings (trip_id starts with "booking-")
+  - For dynamic bookings: Calculate price from flight_details and hotel_details instead of TRIP_PRICES
+  - Security validation: Comprehensive checks to prevent price tampering:
+    * Validates flight 'price' and hotel 'price_per_night' keys exist
+    * Rejects non-numeric values (ValueError/TypeError)
+    * Rejects non-finite values using math.isfinite() (blocks NaN and Infinity)
+    * Rejects zero or negative prices
+    * Validates dates are in ISO format (YYYY-MM-DD)
+    * Ensures end_date > start_date
+  - Price calculation: (flight_price × passengers) + (hotel_price_per_night × nights)
+  - Pre-defined trips continue using TRIP_PRICES for backward compatibility
+  - Testing: Architect-reviewed and confirmed all security holes closed, production-ready
 - **Added Dedicated Payment Summary Page** (2025-11-09): Refactored booking flow to include payment summary page before Stripe checkout
   - Created `currentPaymentBooking` global variable to store booking details between pages
   - Updated `navigateTo()` function to support 'payment' page route and call `loadPaymentPage()`
