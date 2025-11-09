@@ -814,6 +814,20 @@ async def get_booking(booking_id: str, db: Session = Depends(get_db)):
 async def create_checkout_session(payment: PaymentRequest, db: Session = Depends(get_db)):
     """Create a Stripe checkout session for payment."""
     try:
+        # Validate required fields
+        if not payment.booking_id or not payment.booking_id.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Booking ID is required"
+            )
+        
+        # Validate amount is positive
+        if payment.amount <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid amount. Amount must be greater than 0"
+            )
+        
         if not stripe.api_key:
             raise HTTPException(
                 status_code=400, 
