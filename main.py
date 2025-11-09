@@ -371,17 +371,28 @@ async def get_booking_options(request: Dict[str, Any] = None):
         if agent is not None:
             from agent.travel_agent import search_flights, search_hotels
             import json
+            from datetime import datetime, timedelta
             
-            # Search flights
+            # Search flights - use .invoke() for LangChain tools
             flight_budget = budget * 0.4  # Allocate 40% of budget to flights
-            flights_result = search_flights(origin, destination, start_date, flight_budget / passengers)
+            flights_result = search_flights.invoke({
+                "origin": origin,
+                "destination": destination,
+                "date": start_date,
+                "max_budget": flight_budget / passengers
+            })
             flights_json = json.loads(flights_result)
             flights_data = flights_json.get("flights", [])
             
-            # Search hotels
+            # Search hotels - use .invoke() for LangChain tools
             hotel_budget = budget * 0.4  # Allocate 40% of budget to hotels per night
             num_nights = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
-            hotels_result = search_hotels(destination, start_date, end_date, hotel_budget / num_nights if num_nights > 0 else hotel_budget)
+            hotels_result = search_hotels.invoke({
+                "city": destination,
+                "check_in": start_date,
+                "check_out": end_date,
+                "max_price_per_night": hotel_budget / num_nights if num_nights > 0 else hotel_budget
+            })
             hotels_json = json.loads(hotels_result)
             hotels_data = hotels_json.get("hotels", [])
         else:
