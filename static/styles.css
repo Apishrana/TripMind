@@ -320,6 +320,44 @@ body::before {
     cursor: none;
 }
 
+/* Logout Button Styles */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+    cursor: none;
+}
+
+.logout-btn svg {
+    flex-shrink: 0;
+}
+
+.logout-text {
+    font-size: 0.9rem;
+}
+
+/* Dark mode support for logout button */
+[data-theme="dark"] .logout-btn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+[data-theme="dark"] .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
 /* Dark Mode Global Styles */
 [data-theme="dark"] {
     --dark: #f8fafc;
@@ -3004,8 +3042,21 @@ html {
     }
     
     .nav-link.theme-toggle,
+    .logout-btn,
     .profile-menu-container {
         flex-shrink: 0;
+    }
+    
+    /* Hide logout text on mobile, show icon only */
+    .logout-btn {
+        padding: 0.5rem;
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+    }
+    
+    .logout-text {
+        display: none;
     }
 }
 
