@@ -9,21 +9,21 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
-- **Consolidated Navbar UI with Settings Button** (2025-11-09): Replaced theme toggle, profile button, and sign out button with unified Settings menu
-  - Removed separate theme toggle, logout, and profile buttons from navbar
-  - Added single Settings button with gear icon (rotates 45° on hover)
-  - Settings dropdown menu includes:
-    * Theme toggle option with dynamic icon (moon/sun)
-    * Profile section displaying user avatar (initials), name, and email
-    * Navigation shortcuts: Account Settings, My Trips, My Bookings, Calendar, Preferences
-    * Switch Account option
-    * Sign Out option with red styling for clear identification
-  - Robust event handling: supports both mouse and keyboard activation
-  - Menu auto-closes when clicking outside or after selecting an option
-  - Mobile responsive: gear icon maintains proper size on all screen sizes
-  - Dark mode support: all menu elements adapt to theme
-  - CSS cleanup: removed old styles for theme-toggle, logout-btn, profile-menu-container
-  - Testing: Architect-reviewed and confirmed all functionality works correctly without regressions
+- **Converted Settings to Dedicated Page** (2025-11-09): Transformed settings dropdown menu into a full standalone settings page
+  - Created new /settings route with dedicated page layout including:
+    * Profile Information section with user avatar (initials), name, and email
+    * Appearance section with theme toggle button (dynamic moon/sun icon)
+    * Quick Navigation section with buttons for Account Settings, My Trips, My Bookings, Calendar, Preferences
+    * Account Management section with Switch Account and Sign Out buttons
+  - Updated navbar settings button to navigate to /settings page (removed dropdown functionality)
+  - Implemented loadSettingsPageProfile() to populate user data when navigating to settings
+  - Complete cleanup of all dropdown-related code:
+    * Removed all dropdown CSS classes (settings-menu-container, settings-trigger, settings-dropdown, etc.)
+    * Removed dropdown CSS from all mobile responsive breakpoints (@media queries)
+    * Removed toggleSettingsMenu() and closeSettingsMenuOnClickOutside() JavaScript functions
+    * Removed loadUserProfile() function (replaced by loadSettingsPageProfile for settings page)
+  - Benefits: Better UX for settings management, cleaner code without dropdown complexity, easier mobile navigation
+  - Testing: Architect-reviewed twice and confirmed complete removal of dead code with no regressions
 - **Fixed Profile Dropdown Visibility** (2025-11-09): Resolved profile dropdown menu not appearing issue
   - Issue: Inline `style="display: none;"` in HTML was preventing CSS animations from working
   - Solution: Removed inline display style and simplified JavaScript to only toggle CSS classes
