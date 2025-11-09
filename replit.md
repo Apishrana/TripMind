@@ -9,6 +9,16 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Added Dedicated Payment Summary Page** (2025-11-09): Refactored booking flow to include payment summary page before Stripe checkout
+  - Created `currentPaymentBooking` global variable to store booking details between pages
+  - Updated `navigateTo()` function to support 'payment' page route and call `loadPaymentPage()`
+  - Refactored `proceedToBooking()` to navigate to payment page after successful booking creation (instead of directly to Stripe)
+  - Implemented `loadPaymentPage()` function to populate booking summary, price breakdown, and total amount
+  - Created `proceedToStripePayment()` function to handle Stripe checkout session creation from payment page
+  - Payment page displays: booking ID, destination, travel dates, passengers, email, flight details, hotel details, and itemized pricing
+  - Enhanced UX: success toast notification before navigation, loading states on payment button, error handling with toast notifications
+  - Benefits: Users can review complete booking details before payment, better transparency, improved user confidence
+  - Testing: Architect-reviewed and confirmed payment flow is logical, secure, and user-friendly
 - **Converted Settings to Dedicated Page** (2025-11-09): Transformed settings dropdown menu into a full standalone settings page
   - Created new /settings route with dedicated page layout including:
     * Profile Information section with user avatar (initials), name, and email
