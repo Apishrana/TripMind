@@ -235,6 +235,15 @@ async def plan_trip(query: TravelQuery):
     Main endpoint for travel planning.
     Accepts natural language queries and returns AI-generated travel plans.
     """
+    # Validate query is not empty
+    if not query.query or not query.query.strip():
+        return TravelResponse(
+            status="error",
+            response="❌ Query cannot be empty. Please provide a destination or travel plan request.",
+            request=query.query,
+            error="Query is required"
+        )
+    
     if agent is None:
         return TravelResponse(
             status="error",
