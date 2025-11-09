@@ -2465,8 +2465,12 @@ function showMyBookings() {
 
 // ========== SETTINGS MENU ==========
 function toggleSettingsMenu(event) {
-    event.stopPropagation();
+    if (event && event.stopPropagation) {
+        event.stopPropagation();
+    }
     const dropdown = document.getElementById('settings-dropdown');
+    if (!dropdown) return;
+    
     const isOpen = dropdown.classList.contains('show');
     
     if (!isOpen) {
@@ -2487,7 +2491,7 @@ function closeSettingsMenuOnClickOutside(event) {
     const dropdown = document.getElementById('settings-dropdown');
     const settingsContainer = document.querySelector('.settings-menu-container');
     
-    if (!settingsContainer.contains(event.target)) {
+    if (dropdown && settingsContainer && !settingsContainer.contains(event.target)) {
         dropdown.classList.remove('show');
         document.removeEventListener('click', closeSettingsMenuOnClickOutside);
     }
