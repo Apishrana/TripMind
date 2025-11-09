@@ -9,6 +9,20 @@ The project includes a complete authentication system with sign-in/sign-up, secu
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (Latest)
+- **Fixed Calendar Duplication Bug & Enhanced Validation** (2025-11-09): Eliminated duplicate API calls and added comprehensive event validation
+  - Issue: Calendar events were being fetched 3-4 times on every page load due to duplicate `updateCalendarStats()` calls
+  - Solution: Refactored `updateCalendarStats()` to use `calendar.getEvents()` instead of making separate API calls
+  - Performance improvement: Reduced API calls by 67-75% (from 3-4 calls to 1 per page load)
+  - Removed duplicate `setTimeout` blocks that were triggering redundant stats updates
+  - Enhanced backend validation:
+    * Date ordering: end_date must be on or after start_date
+    * Timed event validation: both start_time and end_time required when all_day = "false"
+    * Time format validation: enforces HH:MM format for ALL timed events (including multi-day)
+    * Time ordering: end_time must be after start_time for same-day events
+    * Fixed error message typo: "YYYY-MM-D" → "YYYY-MM-DD"
+  - Validation now prevents: backward dates, missing times, malformed times (e.g., "99:99"), invalid time ordering
+  - Comprehensive testing: 9 tests covering all CRUD operations, validation edge cases, and multi-day events
+  - Testing: Architect-reviewed twice and confirmed production-ready with no remaining issues
 - **Fixed Dynamic Booking Price Validation** (2025-11-09): Resolved booking creation failures for AI-generated trips
   - Issue: Backend only accepted pre-defined trip IDs from TRIP_PRICES, rejecting dynamic booking IDs like "booking-1762651234567"
   - Solution: Updated /api/bookings endpoint to detect dynamic bookings (trip_id starts with "booking-")
