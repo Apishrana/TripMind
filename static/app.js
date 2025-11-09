@@ -114,9 +114,9 @@ function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
     
-    const themeIcon = document.getElementById('theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    const themeIconSettings = document.getElementById('theme-icon-settings');
+    if (themeIconSettings) {
+        themeIconSettings.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
     
     // Add smooth transition
@@ -2463,10 +2463,10 @@ function showMyBookings() {
     }, 500);
 }
 
-// ========== PROFILE MENU ==========
-function toggleProfileMenu(event) {
+// ========== SETTINGS MENU ==========
+function toggleSettingsMenu(event) {
     event.stopPropagation();
-    const dropdown = document.getElementById('profile-dropdown');
+    const dropdown = document.getElementById('settings-dropdown');
     const isOpen = dropdown.classList.contains('show');
     
     if (!isOpen) {
@@ -2474,22 +2474,22 @@ function toggleProfileMenu(event) {
         dropdown.classList.add('show');
         // Add click listener to close when clicking outside
         setTimeout(() => {
-            document.addEventListener('click', closeProfileMenuOnClickOutside);
+            document.addEventListener('click', closeSettingsMenuOnClickOutside);
         }, 0);
     } else {
         // Closing the dropdown
         dropdown.classList.remove('show');
-        document.removeEventListener('click', closeProfileMenuOnClickOutside);
+        document.removeEventListener('click', closeSettingsMenuOnClickOutside);
     }
 }
 
-function closeProfileMenuOnClickOutside(event) {
-    const dropdown = document.getElementById('profile-dropdown');
-    const profileContainer = document.querySelector('.profile-menu-container');
+function closeSettingsMenuOnClickOutside(event) {
+    const dropdown = document.getElementById('settings-dropdown');
+    const settingsContainer = document.querySelector('.settings-menu-container');
     
-    if (!profileContainer.contains(event.target)) {
+    if (!settingsContainer.contains(event.target)) {
         dropdown.classList.remove('show');
-        document.removeEventListener('click', closeProfileMenuOnClickOutside);
+        document.removeEventListener('click', closeSettingsMenuOnClickOutside);
     }
 }
 
@@ -2499,20 +2499,18 @@ function loadUserProfile() {
         try {
             const user = JSON.parse(userStr);
             
-            // Update profile name and email
-            const profileName = document.getElementById('profile-name');
-            const profileEmail = document.getElementById('profile-email');
+            // Update settings dropdown name and email
+            const settingsProfileName = document.getElementById('settings-profile-name');
+            const settingsProfileEmail = document.getElementById('settings-profile-email');
             
-            if (profileName) profileName.textContent = user.name || 'User Name';
-            if (profileEmail) profileEmail.textContent = user.email || 'user@example.com';
+            if (settingsProfileName) settingsProfileName.textContent = user.name || 'User Name';
+            if (settingsProfileEmail) settingsProfileEmail.textContent = user.email || 'user@example.com';
             
-            // Update initials in avatar
+            // Update initials in settings dropdown avatar
             const initials = getInitials(user.name || 'User');
-            const profileInitials = document.getElementById('profile-initials');
-            const profileInitialsLarge = document.getElementById('profile-initials-large');
+            const settingsProfileInitials = document.getElementById('settings-profile-initials');
             
-            if (profileInitials) profileInitials.textContent = initials;
-            if (profileInitialsLarge) profileInitialsLarge.textContent = initials;
+            if (settingsProfileInitials) settingsProfileInitials.textContent = initials;
         } catch (error) {
             console.error('Error loading user profile:', error);
         }
